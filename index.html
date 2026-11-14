@@ -423,14 +423,118 @@ celda mezcla valle y cumbre. Por eso el apartado 1.1.a pide comparar la elevaci�
 <p class='note'>Series horarias por punto (<code>reanalysis-era5-land-timeseries</code>), 1981–2025: las medias diarias de
 componentes del viento subestiman la velocidad porque los vectores de distintas horas se cancelan.</p>
 </div><div class='stack'>
-<div class='callout blue'><b>Descarga <span class='tag prog'>en curso</span></b><br>
-Series horarias: 0 de 30 celdas. Medias mensuales por área: en cola.</div>
+<div class='callout green'><b>Descarga <span class='tag done'>hecho</span></b><br>
+Series horarias: 30 de 30 celdas. Medias mensuales por área: descargadas.</div>
 <div class='card'><h4>Medias mensuales (<code>monthly-means</code>)</h4><p>Para la ETo calculada con medias mensuales (error por
 promediar antes de una ecuación no lineal), la radiación neta real (1.2.3), la evaporación total (1.2.4) y la humedad del suelo
 (1.3.2). Ojo: variables acumuladas en m d⁻¹ y evaporación negativa por convención.</p></div>
 <div class='card'><h4>Lo que no entra en ETo</h4><p>La radiación neta de ERA5-Land es la de la superficie real, con su propio
 albedo; la ETo usa la del pasto de referencia (albedo 0,23). La evaporación potencial <code>pev</code> no es ETo.</p></div>
-</div></div></section><section class='slide' id='p1-plan' data-g='d' data-sec='1 · Evapotranspiración'><p class='kicker k-data'>Punto 1 · Hoja de ruta</p><h2>Del dato a la interpretación física</h2><div class='tw'><table class='tb'><thead><tr><th>Apartado</th><th>Contenido</th><th>Estado</th></tr></thead><tbody><tr><td>1.1.a</td><td>ETo FAO-56 diaria → mensual; error por promediar</td><td><span class='tag prog'>en curso</span></td></tr><tr><td>1.1.b</td><td>Pruebas de la referencia (estaciones, TerraClimate, GLEAM)</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.1.c</td><td>Métodos simples (≥ 4 de la tabla + 2 nuevos)</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.1.d</td><td>Términos radiativo y aerodinámico, α*, sensibilidad</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.2</td><td>ET real: balance P − Q, techo energético, productos</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.3</td><td>Energía o agua: régimen mensual, Budyko–Fu, elasticidad</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.4</td><td>Tendencias y atribución de la tendencia de ETo</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.5</td><td>Proceso propio de la cuenca (tema por escoger)</td><td><span class='tag dec'>decisión del grupo</span></td></tr></tbody></table></div><p class='note'>La Tarea 1 dejó dos pistas que el punto 1 debe revisar: P/PET = 0,62 (subhúmedo seco) y un balance que no cierra (R/P observado 0,48 frente a 0,16 de Budyko).</p></section><section class='slide' id='p2-sitio' data-g='a' data-sec='2 · Diseño hidrológico'><p class='kicker k-arch'>Punto 2 · 2.1</p><h2>¿Por qué el punto 2 se hace en Cottbus?</h2>
+</div></div></section><section class='slide' id='p1-paso1' data-g='d' data-sec='1 · Evapotranspiración'><p class='kicker k-data'>1.1.a · Paso 1</p><h2>Los datos: unidades, hora local y control de calidad</h2>
+<div class='two even'><div class='stack'>
+<div class='tw'><table class='tb'><thead><tr><th>Variable</th><th>Viene en</th><th>Se usa en</th></tr></thead><tbody><tr><td><code>t2m</code>, <code>d2m</code></td><td>K</td><td>°C</td></tr><tr><td><code>u10</code>, <code>v10</code></td><td>m s⁻¹ (componentes, 10 m)</td><td>magnitud √(u²+v²) cada hora</td></tr><tr><td><code>ssrd</code></td><td>J m⁻² en la hora que <b>termina</b> en <code>valid_time</code></td><td>MJ m⁻² d⁻¹ (suma de 24 h)</td></tr><tr><td><code>sp</code></td><td>Pa</td><td>kPa</td></tr></tbody></table></div>
+<div class='callout blue'><b>Hora local.</b> ERA5-Land está en UTC y Perú en UTC−5. Un día peruano D va de D 06:00 UTC a D+1 05:00 UTC
+para la radiación (acumulada en la hora anterior) y de D 05:00 a D+1 04:00 UTC para las variables instantáneas. Sin este corrimiento,
+la Tmín de la madrugada quedaría partida entre dos días.</div>
+</div><div class='stack'>
+<div class='readout'><div><span>celdas</span><b>30</b></div><div><span>horas por celda</span><b>394 464</b></div><div><span>faltantes</span><b class='c-ok'>0</b></div></div>
+<div class='card'><h4>Radiación horaria, no acumulada</h4><p>Sube en la mañana, llega al máximo al mediodía local y baja en la tarde. Hay unos pocos
+−2 J m⁻² a las 19:00 locales: residuos numéricos, se ponen en 0.</p></div>
+<div class='card'><h4>El viento de ERA5-Land es débil</h4><p>El máximo horario en 45 años es de solo 2,6–4,4 m s⁻¹ a 10 m: el relieve suavizado y una
+rugosidad alta frenan el viento. Es una limitación para el término aerodinámico.</p></div>
+<p class='note'>Script <code>codigo/punto1/lectura_era5land.py</code>; tabla <code>productos/punto1/control_calidad_era5land_horario.csv</code>.</p>
+</div></div></section><section class='slide' id='p1-dia' data-g='d' data-sec='1 · Evapotranspiración'><p class='kicker k-data'>1.1.a · Paso 2</p><h2>Un día a mano: así se arma la ETo de FAO-56</h2>
+<div class='two'><div class='stack'>
+<p>Celda central (7,6° S, 78,5° O), 15 de enero de 1981, un día nublado de la temporada de lluvias. Cada término tiene su ecuación
+de FAO-56 y un significado físico.</p>
+<ul class='pts'><li><b>Radiación:</b> llegó el 59 % de la radiación de cielo despejado; con albedo 0,23 y la pérdida de onda larga quedan
+R<sub>n</sub> ≈ 134 W m⁻².</li>
+<li><b>Aire:</b> déficit de vapor de 0,63 kPa (HR ≈ 70 %) y viento casi en calma (u₂ = 0,48 m s⁻¹).</li>
+<li><b>Resultado:</b> ETo = 3,49 mm d⁻¹, el 93 % por energía radiativa. α* = 1,03: la demanda es casi la de equilibrio, sin aire
+seco que la empuje.</li></ul>
+<div class='callout green'><b>Verificación:</b> la librería independiente <code>pyet</code> da exactamente 3,494 mm d⁻¹, y el script de la cuenca
+reproduce ese valor para esa celda y día.</div>
+</div><div class='calc'>ETo FAO-56 a mano - celda -7.6 -78.5 - dia local 1981-01-15 (dia juliano 15)
+==============================================================================
+1) Datos del dia (agregados de 24 valores horarios de ERA5-Land, hora local UTC-5)
+   Tmax = 23.12 C   Tmin = 12.20 C   Tmedia=(Tmax+Tmin)/2 = 17.66 C
+   (media de las 24 h = 16.81 C; FAO-56 usa (Tmax+Tmin)/2)
+   Td media = 12.96 C   u10 media (magnitud horaria) = 0.64 m/s   Rs = 18.49 MJ m-2 d-1
+   presion del modelo en la celda = 79.77 kPa  -&gt; elevacion equivalente (ec.7 inversa) = 2002 m
+
+2) Presion y constante psicrometrica (ecs. 7 y 8), con la elevacion media de la cuenca
+   P = 101.3((293-0.0065*2557)/293)^5.26 = 74.51 kPa
+   gamma = 0.665e-3 * P = 0.0495 kPa/C
+
+3) Vapor de agua (ecs. 11-14)
+   e0(Tmax) = 0.6108 exp(17.27*23.12/(23.12+237.3)) = 2.830 kPa
+   e0(Tmin) = 1.421 kPa   -&gt;  es = 2.125 kPa
+   e0(Tmedia) = 2.020 kPa  (menor que es: la curva de saturacion es convexa)
+   ea = e0(Td) = 1.494 kPa   -&gt;  deficit de vapor es - ea = 0.631 kPa   (HR media ~ 70 %)
+   Delta = 4098 e0(T)/(T+237.3)^2 = 0.1274 kPa/C
+
+4) Viento a 2 m (ec. 47)
+   u2 = u10 * 4.87/ln(67.8*10-5.42) = 0.64 * 0.748 = 0.48 m/s
+
+5) Radiacion (ecs. 21, 37, 38, 39)
+   Ra (extraterrestre) = 38.80 MJ m-2 d-1      Rso (cielo despejado) = 31.09
+   Rs/Rso = 0.59  (fraccion de la radiacion de cielo despejado que llego: nubosidad)
+   Rns = 0.77*Rs = 14.23    Rnl = 2.69    Rn = Rns - Rnl = 11.55 MJ m-2 d-1
+   Rn en energia: 11.55 MJ m-2 d-1 = 134 W m-2;  como lamina Rn/lambda = 4.71 mm/d
+
+6) ETo (ec. 6), G = 0 en escala diaria (ec. 42)
+   denominador Delta + gamma(1+0.34 u2) = 0.1849
+   termino radiativo     0.408 Delta Rn / den              = 3.244 mm/d  (93 %)
+   termino aerodinamico  gamma 900/(T+273) u2 (es-ea) / den = 0.249 mm/d  (7 %)
+   ETo = 3.494 mm/d   (= 99 W m-2 de calor latente; regla de la guia: 1 mm/d ~ 28 W m-2)
+   E_eq = Delta/(Delta+gamma) Rn/lambda = 3.393 mm/d   -&gt;  alfa* = ETo/E_eq = 1.03
+
+7) Verificacion independiente con pyet.pm_fao56
+   pyet (misma Rn, mismo u2): ETo = 3.494 mm/d   diferencia = +0.0000 mm/d
+   pyet calculando Rn por su cuenta desde Rs: ETo = 3.494 mm/d   diferencia = +0.0000 mm/d</div></div></section><section class='slide' id='p1-ciclo' data-g='d' data-sec='1 · Evapotranspiración'><p class='kicker k-data'>1.1.a · Paso 3</p><h2>La demanda de la cuenca: casi constante y dominada por la radiación</h2>
+<div class='stackfig'><div class='panel'><a href='img/eto_ciclo.webp' target='_blank' rel='noopener' title='Abrir en tamaño completo'><img class='figimg' src='img/eto_ciclo.webp' width='2400' height='860' alt='Ciclo anual de ETo, lluvia y radiación' loading='lazy'></a></div>
+<div class='txtcols'><div>
+<div class='readout'><div><span>ETo media anual</span><b>1 211 mm</b></div><div><span>rango entre años</span><b>1 127–1 285</b></div>
+<div><span>término radiativo</span><b class='c-sw'>90 %</b></div></div>
+<p>La ETo varía poco a lo largo del año (88–115 mm/mes) porque a 7,6° S el Sol siempre está alto. Lo que la modula es
+<b>la nubosidad</b>: en febrero–abril la radiación en el tope de la atmósfera es máxima, pero las nubes de la temporada de lluvias dejan
+pasar menos y la ETo baja. En octubre–noviembre el cielo aún está despejado y el Sol vuelve a estar alto: ahí está el máximo.</p></div>
+<div><p>En junio–julio la radiación del tope es mínima (invierno austral) y el término radiativo cae, pero el aire seco y algo más ventoso de la
+estación seca sube el término aerodinámico: <b>los dos términos se compensan en parte</b>.</p>
+<p>La lluvia supera a la demanda solo de febrero a abril. De mayo a noviembre la ETo es mucho mayor que P: en esos meses la
+evapotranspiración real tendrá que estar limitada por el agua, lo que se pondrá a prueba en los apartados 1.2 y 1.3.</p></div></div></div></section><section class='slide' id='p1-forz' data-g='d' data-sec='1 · Evapotranspiración'><p class='kicker k-data'>1.1.a · Paso 3</p><h2>Qué cambia en el aire de la estación seca</h2>
+<div class='stackfig'><div class='panel'><a href='img/eto_forzantes.webp' target='_blank' rel='noopener' title='Abrir en tamaño completo'><img class='figimg' src='img/eto_forzantes.webp' width='2400' height='720' alt='Temperatura, déficit de vapor y viento' loading='lazy'></a></div>
+<div class='txtcols'><div><p>La temperatura media apenas cambia en el año (≈ 14 °C en ERA5-Land): clima isotermal, como se vio en la Tarea 1. Lo que cambia es la
+<b>amplitud diaria</b>: en julio–agosto, con cielos despejados, el día se calienta más y la noche se enfría más.</p></div>
+<div><p>El punto de rocío cae unos 4 °C en la estación seca: el aire que llega es más seco (subsidencia del anticiclón del Pacífico Sur).
+Con aire seco y más amplitud térmica, el déficit de vapor se duplica (0,37 → 0,80 kPa), y el viento a 2 m también es máximo en
+julio–agosto, aunque sigue siendo débil.</p></div></div></div></section><section class='slide' id='p1-serie' data-g='d' data-sec='1 · Evapotranspiración'><p class='kicker k-data'>1.1.a · Paso 3</p><h2>La serie mensual y la ETo de cada celda</h2>
+<div class='stackfig'><div class='panel'><a href='img/eto_serie.webp' target='_blank' rel='noopener' title='Abrir en tamaño completo'><img class='figimg' src='img/eto_serie.webp' width='2400' height='680' alt='Serie mensual de ETo' loading='lazy'></a></div>
+<div class='two even'><div class='panel'><a href='img/eto_celdas.webp' target='_blank' rel='noopener' title='Abrir en tamaño completo'><img class='figimg' src='img/eto_celdas.webp' width='1100' height='840' alt='ETo por celda frente a elevación' loading='lazy'></a></div>
+<div class='stack'><p>Entre celdas, la ETo cae de ≈ 1 400 mm/año a 1 400 m a ≈ 1 030 mm/año a 3 600 m: <b>unos −170 mm por cada kilómetro</b>.
+Con la altura baja la temperatura, y con ella Δ (la pendiente de la curva de saturación) y el déficit de vapor; la radiación casi no cambia.</p>
+<p>Por eso la elevación de cada celda importa (paso 5) y por eso el gradiente altitudinal es un buen tema para el apartado 1.5.a.</p>
+<p class='note'>Decisiones: ETo calculada en cada celda y luego promediada (calcular con las variables ya promediadas da +0,4 %); γ y R<sub>so</sub> con la
+elevación media de la cuenca, 2 557 m (usar la presión de cada celda cambia la ETo +0,1 %). Script <code>03_eto_diaria_cuenca.py</code>.</p></div></div></div></section><section class='slide' id='p1-prom' data-g='d' data-sec='1 · Evapotranspiración'><p class='kicker k-data'>1.1.a · Paso 4</p><h2>¿Cuánto se pierde al calcular con medias mensuales?</h2>
+<div class='stackfig'><div class='panel'><a href='img/eto_promediar.webp' target='_blank' rel='noopener' title='Abrir en tamaño completo'><img class='figimg' src='img/eto_promediar.webp' width='2600' height='780' alt='Error por promediar' loading='lazy'></a></div>
+<div class='txtcols'><div>
+<p><b>M1</b> (medias de las variables diarias, con Tmáx y Tmín): error de ±0,5 %. La ecuación es casi lineal en R<sub>n</sub>, que domina la ETo.</p>
+<p><b>M2</b> (sin extremos, e<sub>s</sub> = e°(T media)): −1 a −3 %. La curva de saturación es convexa, así que e°(T media) &lt; ½[e°(Tmáx)+e°(Tmín)].
+El error crece en julio–agosto, cuando la amplitud térmica es mayor.</p></div>
+<div><p><b>M3</b> (producto mensual de ERA5-Land): −2,5 a −6,4 %, máximo en julio–agosto. Al promediar las componentes del viento, la magnitud
+queda en solo el 20–60 % de la real: las brisas de valle y de montaña cambian de dirección entre el día y la noche y se cancelan. Pesa más en la
+estación seca, cuando el término aerodinámico es mayor.</p>
+<div class='callout red'><b>Error del producto mensual confirmado:</b> entre 2022-09 y 2024-02 la radiación del producto mensual es solo el 31 % de la real
+(el error que advierte ECMWF). Esos meses se excluyen de M3.</div></div></div></div></section><section class='slide' id='p1-elev' data-g='d' data-sec='1 · Evapotranspiración'><p class='kicker k-data'>1.1.a · Paso 5</p><h2>Elevación del modelo frente al DEM</h2>
+<div class='stackfig'><div class='panel'><a href='img/eto_elevacion.webp' target='_blank' rel='noopener' title='Abrir en tamaño completo'><img class='figimg' src='img/eto_elevacion.webp' width='2600' height='800' alt='Elevación de ERA5-Land frente al DEM' loading='lazy'></a></div>
+<div class='txtcols'><div>
+<p>En promedio el modelo acierta: 2 641 m frente a 2 554 m del DEM (+87 m). Pero <b>celda a celda</b> se equivoca en 283 m de media y hasta 1 135 m,
+y la curva hipsométrica muestra que el modelo no tiene ni el fondo del valle (&lt; 1 500 m) ni las cumbres (&gt; 3 850 m).</p>
+<p>Las 30 celdas dan gradientes verticales muy limpios (R² ≈ 0,98): −5,4 °C/km en Tmáx, −5,1 en Tmín y −5,3 en el punto de rocío.</p></div>
+<div><p>Corrigiendo T y T<sub>d</sub> a la elevación del DEM, la ETo de la cuenca cambia solo +1,1 % (1 212 → 1 226 mm): los errores de celdas altas y
+bajas se compensan, y además T y T<sub>d</sub> bajan juntos, de modo que el déficit de vapor casi no cambia.</p>
+<div class='callout amber'><b>Pero ERA5-Land es más frío que PISCOt:</b> 13,9 °C frente a 16,1 °C en 1981–2020. La elevación explica solo ≈ 0,5 °C de esa
+diferencia; el resto es sesgo del reanálisis o de PISCOt. Se revisa en 1.1.b con estaciones.</div></div></div></div></section><section class='slide' id='p1-plan' data-g='d' data-sec='1 · Evapotranspiración'><p class='kicker k-data'>Punto 1 · Hoja de ruta</p><h2>Del dato a la interpretación física</h2><div class='tw'><table class='tb'><thead><tr><th>Apartado</th><th>Contenido</th><th>Estado</th></tr></thead><tbody><tr><td>1.1.a</td><td>ETo FAO-56 diaria → mensual; error por promediar</td><td><span class='tag done'>hecho</span></td></tr><tr><td>1.1.b</td><td>Pruebas de la referencia (estaciones, TerraClimate, GLEAM)</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.1.c</td><td>Métodos simples (≥ 4 de la tabla + 2 nuevos)</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.1.d</td><td>Términos radiativo y aerodinámico, α*, sensibilidad</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.2</td><td>ET real: balance P − Q, techo energético, productos</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.3</td><td>Energía o agua: régimen mensual, Budyko–Fu, elasticidad</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.4</td><td>Tendencias y atribución de la tendencia de ETo</td><td><span class='tag pend'>pendiente</span></td></tr><tr><td>1.5</td><td>Proceso propio de la cuenca (tema por escoger)</td><td><span class='tag dec'>decisión del grupo</span></td></tr></tbody></table></div><p class='note'>La Tarea 1 dejó dos pistas que el punto 1 debe revisar: P/PET = 0,62 (subhúmedo seco) y un balance que no cierra (R/P observado 0,48 frente a 0,16 de Budyko).</p></section><section class='slide' id='p2-sitio' data-g='a' data-sec='2 · Diseño hidrológico'><p class='kicker k-arch'>Punto 2 · 2.1</p><h2>¿Por qué el punto 2 se hace en Cottbus?</h2>
 <p class='lead'>La guía ordena los criterios: primero la longitud del registro, luego la resolución, luego la calidad, y la
 cercanía a la cuenca del punto 1 solo desempata.</p>
 <div class='tw'><table class='tb'><thead><tr><th>Serie</th><th>Ubicación</th><th>Resolución</th><th>Registro útil</th><th>Cumple</th></tr></thead><tbody><tr><td>Cajamarca aeropuerto (SPJR)</td><td>≈ 50 km NE, 2 676 m</td><td>6 h (nunca horaria)</td><td>5 años con ≥ 80 % de reportes de 6 h</td><td><span class='tag blk'>bloqueado</span></td></tr><tr><td>San Marcos (84479)</td><td>≈ 60 km E</td><td>1 h</td><td>solo 2026</td><td><span class='tag blk'>bloqueado</span></td></tr><tr><td>Estaciones automáticas SENAMHI en la cuenca</td><td>dentro</td><td>1 h</td><td>desde ~2014 (≤ 12 años, a pedido)</td><td><span class='tag blk'>bloqueado</span></td></tr><tr><td><b>Cottbus, DWD 00880</b></td><td>Alemania</td><td><b>10 min</b></td><td><b>30 años válidos</b> (1993–2025)</td><td><span class='tag done'>hecho</span></td></tr></tbody></table></div>
@@ -457,15 +561,14 @@ local alemana hasta 1999 y en UTC desde 2000 (ver metadatos del ZIP).</p>
 <div class='panel'><div class='tshost' id='g-max'></div>
 <p class='ts-title'>Máximo anual de lluvia en 10 minutos (descriptivo: todavía sin ajuste de distribuciones).</p></div></div></div></section><section class='slide' id='estado' data-g='d' data-sec='3 · Estado'><p class='kicker k-data'>Estado del trabajo</p><h2>Qué está hecho y qué sigue</h2>
 <div class='two even'><div class='stack'>
-<div class='card'><h4>Hecho <span class='tag done'>hecho</span></h4><p>Selección del sitio del punto 2 con datos; completitud de Cottbus; celdas y
-pesos de ERA5-Land de la Tarea 1; entorno de Python reproducible (<code>requirements.txt</code>).</p></div>
-<div class='card'><h4>En curso <span class='tag prog'>en curso</span></h4><p>Descarga de ERA5-Land horario (30 celdas) y mensual, 1981–2025.</p></div>
-<div class='card'><h4>Decisiones del grupo <span class='tag dec'>decisión del grupo</span></h4><p>Criterio de año válido en Cottbus; tema del apartado 1.5;
-microcuenca del problema A; vida útil y riesgo aceptable de la obra.</p></div>
+<div class='card'><h4>Hecho <span class='tag done'>hecho</span></h4><p>Selección del sitio del punto 2; completitud de Cottbus; descarga y control de calidad de
+ERA5-Land; <b>apartado 1.1.a completo</b> (ETo diaria y mensual 1981–2025, verificación a mano, error por promediar, elevación).</p></div>
+<div class='card'><h4>Decisiones del grupo <span class='tag dec'>decisión del grupo</span></h4><p>Apartado 1.5: gradiente altitudinal (1.5.a) y niebla bajo la inversión (1.5.c);
+criterio de año válido en Cottbus; microcuenca del problema A; vida útil y riesgo aceptable de la obra.</p></div>
 </div><div class='panel'><h3>Lo que sigue</h3><ul class='pts'>
-<li>Verificar las unidades de radiación de ERA5-Land y calcular a mano la ETo de un día antes de automatizarla.</li>
-<li>ETo diaria → mensual y comparación con la ETo hecha con medias mensuales (1.1.a).</li>
-<li>Series de máximos anuales de 10 min a 24 h en Cottbus con ventanas móviles (2.2.1).</li>
+<li>1.1.b: poner a prueba la ETo con estaciones, la PET de CAMELS-PE y TerraClimate; revisar el sesgo frío de ERA5-Land.</li>
+<li>1.1.c y 1.1.d: métodos simples y explicación física de sus diferencias.</li>
+<li>Punto 2: máximos anuales de 10 min a 24 h en Cottbus con ventanas móviles (2.2.1).</li>
 </ul></div></div></section>
 </main>
 <footer class="nav-bar"><button class="nav" id="prev" type="button" aria-label="Diapositiva anterior">← <span class="navlbl">Anterior</span></button>
