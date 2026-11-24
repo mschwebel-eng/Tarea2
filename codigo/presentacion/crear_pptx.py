@@ -29,6 +29,7 @@ W, H = 13.333, 7.5
 
 prs = Presentation(); prs.slide_width, prs.slide_height = Inches(W), Inches(H)
 VACIA = prs.slide_layouts[6]
+RA = pd.read_csv(RAIZ / "productos/punto2/problemaA_resumen.csv", index_col=0).valor   # 07_problema_A.py
 
 
 def texto(sl, x, y, w, h, parrafos, size=16, color=TEXTO, bold=False, align=PP_ALIGN.LEFT, anchor=MSO_ANCHOR.TOP, nombre=None):
@@ -219,7 +220,7 @@ estandar("Un tubo de 1,00 m; lo más incierto es el tc",
          "Microcuenca de 0,44 km² a 7,2 km del pluviómetro · método racional · T = 25 por riesgo",
          F2 / "fig_2_4_problemaA.png",
          [("T = 25 años", "vida útil de 30 años y riesgo aceptado de 70 %"),
-          ("DN 1,00 m", "Q = 1,05 m³/s (C = 0,34, tc = 102 min, i = 26,6 mm/h); el cálculo pide 0,84 m"),
+          (f"DN {RA.D_comercial_m:.2f} m".replace(".", ","), f"Q = {RA.Q_m3_s:.2f} m³/s (C = {RA.C:.2f}, tc = {RA.tc_min:.0f} min, i = {RA.i_mm_h:.1f} mm/h); el cálculo pide {RA.D_calc_m:.2f} m".replace(".", ",")),
           ("29 % frente a 1 %", "lo que mueve el diámetro el tc frente a la distribución")],
          "Chow et al. (1988), cap. 13 y 15; Kirpich (1940); Grimaldi et al. (2012)",
          "1 min 15 s. La microcuenca es una zanja de prados a 7 km del pluviómetro, en la misma llanura: la IDF vale directamente. Con una vida útil "
@@ -275,7 +276,8 @@ notas(sl, "30 s. Una frase por punto. Si sobra tiempo: si el clima se calienta, 
 sl = prs.slides.add_slide(VACIA)
 titulo(sl, "Reserva: reforestar sube la ET y quita caudal", "Budyko–Fu con ω según la cobertura de bosque · balance de energía de la superficie (mm/año)")
 cd = CategoryChartData(); cd.categories = ["Hoy (15 % bosque)", "100 % bosque nativo", "100 % monocultivo de pino"]
-cd.add_series("ET real", [437, 508, 545]); cd.add_series("Caudal Q", [387, 330, 296])
+esc = pd.read_csv(RAIZ / "productos/punto1/reforestacion_escenarios.csv").set_index("escenario").loc[["hoy", "100 % bosque nativo", "100 % monocultivo de pino"]]  # 17_reforestacion.py
+cd.add_series("ET real", [round(v) for v in esc.ET_mm]); cd.add_series("Caudal Q", [round(v) for v in esc.Q_mm])
 gf = sl.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(0.6), Inches(1.6), Inches(6.9), Inches(4.2), cd); gf.name = "Grafica reforestacion"
 texto(sl, 0.6, 5.9, 6.9, 1.1, [[("Bosque nativo: ", {"bold": True}), ("bosque montano y de queñua (Polylepis) de la cuenca; ET según la curva de bosque de Zhang et al. (2001). ", {}),
                                ("Monocultivo de pino: ", {"bold": True}), ("Pinus patula o P. radiata; 1,6 veces el efecto del nativo (Bosch y Hewlett, 1982: ≈ 40 mm por cada 10 % de coníferas frente a ≈ 25 de latifoliadas).", {})]], size=11, color=PIZARRA)

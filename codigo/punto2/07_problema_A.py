@@ -92,6 +92,9 @@ C_DIS = Cw(T_DIS); i_DIS = idf(TC_DIS, T_DIS); FRA_DIS = fra(A, TC_DIS / 60)
 Q_DIS = Qp(TC_DIS, T_DIS); D_DIS = Dcom(Q_DIS)
 print(f"diseno: C = {C_DIS:.3f}, tc = {TC_DIS:.0f} min, i = {i_DIS:.2f} mm/h, FRA = {FRA_DIS:.3f} -> Qp = {Q_DIS:.3f} m3/s; "
       f"D calculado {Dcalc(Q_DIS):.3f} m -> comercial {D_DIS:.2f} m (capacidad {Qcap(D_DIS):.3f} m3/s, FS = {Qcap(D_DIS)/Q_DIS:.2f})")
+pd.Series({"C": C_DIS, "tc_min": TC_DIS, "T_anios": T_DIS, "T_riesgo": T_riesgo, "i_mm_h": i_DIS, "FRA": FRA_DIS, "Q_m3_s": Q_DIS,
+           "D_calc_m": Dcalc(Q_DIS), "D_comercial_m": D_DIS, "Qcap_m3_s": Qcap(D_DIS), "FS": Qcap(D_DIS) / Q_DIS}).round(4).to_csv(
+    OUT / "problemaA_resumen.csv", header=["valor"])
 
 # ---------------------------------------------------------------- 5) sensibilidad
 aq = pd.read_csv(OUT / "ajuste_cuantiles.csv")

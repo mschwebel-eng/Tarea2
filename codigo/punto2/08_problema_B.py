@@ -167,7 +167,7 @@ for Dh in [120, 180, 240, 720]:
 SB = pd.DataFrame(filas); SB.round(0).to_csv(OUT / "problemaB_sensibilidad.csv", index=False)
 print("\nsensibilidad:"); print(SB.round(0).to_string(index=False))
 
-pd.Series({"C_pre": C_pre, "tc_pre_min": tc_pre, "O_max_m3_s": O_max, "C_post": C_post, "tc_post_min": tc_post, "tc_post_contraste_min": tc_post_v,
+pd.Series({"C_pre": C_pre, "tc_pre_min": tc_pre, "i_pre_mm_h": idf(tc_pre), "i_post_mm_h": idf(tc_post), "O_max_m3_s": O_max, "C_post": C_post, "tc_post_min": tc_post, "tc_post_contraste_min": tc_post_v,
            "Qp_post_m3_s": Q_post, "h_max_m": H_MAX, "Cd": CD, "Ao_m2": Ao, "D_orificio_m": D_or, "d_critica_trapecio_min": dcrit.d_min,
            "V_trapecio_m3": dcrit.V_tanque_m3, "V_aprox_sin_transito_m3": V_aprox, "V_bloques_max_m3": BA.V_tanque_m3.max(),
            "pico_pre_verificacion_m3_s": qpre}).round(4).to_csv(OUT / "problemaB_resumen.csv", header=["valor"])

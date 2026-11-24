@@ -702,27 +702,12 @@ plan = [("1.1.a", "ETo FAO-56 diaria → mensual; error por promediar", "hecho" 
         ("1.3", "Energía o agua: régimen mensual, Budyko–Fu, elasticidad", "hecho" if hay_13 else "pend"),
         ("1.4", "Tendencias y atribución de la tendencia de ETo (+ bono de Budyko)", "hecho" if hay_14 else "pend"),
         ("1.5", "Gradiente altitudinal (1.5.a) y niebla bajo la inversión (1.5.c)", "hecho" if (hay_15a and hay_15c) else "pend")]
-if (P1 / "budyko_resumen.csv").exists() and (P1 / "niebla_resumen.csv").exists():
-    from scipy.optimize import brentq
-    bz = pd.read_csv(P1 / "budyko_resumen.csv", index_col=0).valor
-    nz = pd.read_csv(P1 / "niebla_resumen.csv", index_col=0).valor
-    sz = pd.read_csv(P1 / "sensibilidad_anual_pct.csv", index_col=0)
-    attr = pd.read_csv(RAIZ / "datos/punto1/tarea1/PE_47E0A2A8_atributos.csv", index_col=0).iloc[:, 0]
-    ETo0 = 1211.0                                                         # ETo media anual FAO-56 de 1.1.a (mm)
-    phi0, w0 = float(bz.phi), float(bz.omega_fu)
-    P0 = ETo0 / phi0; ET0 = P0 * float(bz.ET_P)
-    f0 = float(attr.forest_perc)
-    fu = lambda phi, w: 1 + phi - (1 + phi ** w) ** (1 / w)
-    zh = lambda phi, w: (1 + w * phi) / (1 + w * phi + 1 / phi)            # Zhang et al. (2001)
-    Rz = zh(phi0, 2.0) / zh(phi0, 0.5)                                       # razon ET bosque / pastizal a esta aridez
-    def dw_para(R):
-        return brentq(lambda d: fu(phi0, w0 + (1 - f0 / 100) * d) / fu(phi0, w0 - f0 / 100 * d) - R, 0.01, (w0 - 1.001) / (f0 / 100))
-    dw_nat = dw_para(Rz); dw_pl = dw_para(1 + 1.6 * (Rz - 1))
-    sT = float(sz.loc["FAO-56 PM", "T+1_hr"]) / 100
-    _cm = pd.read_csv(P1 / "eto_mensual_comparacion_promedios.csv"); Rs_wm2 = float(_cm.rs.mean()) * 1e6 / 86400
-    Rn_wm2 = float(pd.read_csv(P1 / "et_real_largo_plazo.csv", index_col=0).valor["Rn_lambda"]) * 2.45e6 / 3.1536e7
-    D["refo"] = {"f0": f0, "P0": P0, "ETo0": ETo0, "ET0": ET0, "w0": w0, "sT": sT, "rs": Rs_wm2, "rn": Rn_wm2, "dalb": 0.08,
-                 "dw": {"nat": dw_nat, "pl": dw_pl}, "franja": float(nz["area_franja_inversion_seca_%"]) / 100}
+if (P1 / "reforestacion_parametros.csv").exists():
+    rp = pd.read_csv(P1 / "reforestacion_parametros.csv", index_col=0).valor      # 17_reforestacion.py
+    f0, phi0, Rz, sT = float(rp["f0_%"]), float(rp.phi0), float(rp.razon_Zhang), float(rp.sT_por_C)
+    D["refo"] = {"f0": f0, "P0": float(rp.P0_mm), "ETo0": float(rp.ETo0_mm), "ET0": float(rp.ET0_mm), "w0": float(rp.w0), "sT": sT,
+                 "rs": float(rp.Rs_W_m2), "rn": float(rp.Rn_W_m2), "dalb": float(rp.dalb),
+                 "dw": {"nat": float(rp.dw_nativo), "pl": float(rp.dw_pino)}, "franja": float(rp.franja)}
     FUENTES["p15-refo"] = ("Budyko (1974) en la forma de Fu (1981), con ω calibrado en 1.3; Zhang et al. (2001) para la diferencia bosque–pastizal (w = 2,0 y 0,5); "
                            "Bosch y Hewlett (1982) para la comprobación y el factor 1,6 de las coníferas frente a las latifoliadas; "
                            "Bonan (2008) y Rotenberg y Yakir (2010) para el efecto del bosque en la temperatura según el clima; Eltahir y Bras (1996) para el reciclaje local; "
@@ -916,7 +901,7 @@ if (P2D / "problemaA_montecarlo.csv").exists():
     pA = pd.read_csv(P2D / "problemaA_sensibilidad.csv"); rkA = pd.read_csv(P2D / "problemaA_ranking_incertidumbre.csv", index_col=0)
     mcA = pd.read_csv(P2D / "problemaA_montecarlo.csv", index_col=0).valor; esA = pd.read_csv(P2D / "problemaA_escala.csv")
     ceA = pd.read_csv(P2D / "problemaA_costo_esperado.csv")
-    dis = pA.iloc[0]
+    dis = pA.iloc[0]; ra = pd.read_csv(P2D / "problemaA_resumen.csv", index_col=0).valor
 
     FUENTES["p24-microcuenca"] = ("guía 2.4 (microcuenca de 0,1–5 km²); DGM1 de Brandeburgo (LGB, licencia dl-de/by-2-0), remuestreado a 5 m; "
                                   "ESA WorldCover 2021 (10 m); Copernicus GLO-30; dirección de flujo D8 con pysheds (O'Callaghan y Mark, 1984). "
@@ -957,12 +942,12 @@ vías en el mapa porque los servidores de OpenStreetMap no respondieron.</p></di
     slide("p24-diseno", "2 · Diseño hidrológico", "Punto 2 · 2.4 · Problema A", "El método racional: un tubo de 1,00 m, y la incertidumbre que más pesa es el tc", f"""
 <div class='stackfig'><div class='panel'>{fig(FIG_P2 / 'fig_2_4_problemaA.png', 'problemaA', 'Tiempo de concentración y sensibilidad del diámetro')}</div>
 <div class='txtcols'><div>
-<div class='eq'>Q<sub>p</sub> = C · i(t<sub>c</sub>, T) · A · FRA / 3,6 = {f(0.335, 3)} · {f(26.57, 1)} · {f(mcd.area_km2, 3)} · {f(0.976, 3)} / 3,6 = <b>{f(dis.Q_m3_s, 2)} m³/s</b></div>
+<div class='eq'>Q<sub>p</sub> = C · i(t<sub>c</sub>, T) · A · FRA / 3,6 = {f(ra.C, 3)} · {f(ra.i_mm_h, 1)} · {f(mcd.area_km2, 3)} · {f(ra.FRA, 3)} / 3,6 = <b>{f(dis.Q_m3_s, 2)} m³/s</b></div>
 <p><b>Periodo de retorno por riesgo:</b> vida útil n = 30 años y riesgo aceptado R = 70 % (consecuencias bajas: un camino rural y prados) dan
 T = 1/[1 − (1 − R)<sup>1/n</sup>] = 25,4 → <b>T = 25 años</b>, como recomienda Chow para vías secundarias (10–25 años). El riesgo sigue siendo alto: 71 % de que se
 supere al menos una vez en 30 años.</p>
 <p><b>tc:</b> Kirpich 102 min (elegido: el más usado para cuencas pequeñas con cauce definido), Témez 113, velocidad en la zanja 88 (V = 0,35 m/s) y retardo del SCS 258 min
-(con CN = 55; sobreestima en cuencas muy planas). <b>C</b> = {f(0.335, 3)}, ponderado por área y creciente con T.</p>
+(con CN = 55; sobreestima en cuencas muy planas). <b>C</b> = {f(ra.C, 3)}, ponderado por área y creciente con T.</p>
 <p><b>Diámetro:</b> Manning a tubo lleno, S₀ = 0,5 %, da D = {f(dis.D_calc_m, 2)} m → <b>DN 1,00 m</b> (capacidad 1,70 m³/s, factor de seguridad 1,61).</p></div>
 <div><p><b>¿Qué incertidumbre pesa más?</b> (rango del diámetro calculado, frente al diseño)</p>
 {tabla([(k, f"{f(r.D_min, 2)}–{f(r.D_max, 2)} m", f"{f(r['rango_vs_diseno_%'])} %") for k, r in rkA.iterrows()], ["Fuente", "D calculado", "Rango"])}
@@ -1033,7 +1018,7 @@ if (P2D / "problemaB_resumen.csv").exists():
 <div class='txtcols'><div>
 {tabla([("C (T = 25)", f(rb.C_pre, 3), f(rb.C_post, 3)),
         ("tc", f"{f(rb.tc_pre_min)} min (Kirpich)", f"{f(rb.tc_post_min)} min (Kirpich × 0,4)"),
-        ("i(tc, 25)", "26,6 mm/h", "53,9 mm/h"),
+        ("i(tc, 25)", f"{f(rb.i_pre_mm_h, 1)} mm/h", f"{f(rb.i_post_mm_h, 1)} mm/h"),
         ("Q pico", f"{f(rb.O_max_m3_s, 2)} m³/s", f"{f(rb.Qp_post_m3_s, 2)} m³/s ({f(rb.Qp_post_m3_s / rb.O_max_m3_s, 1)} veces)")],
        ["", "Antes (prados)", "Después (urbano)"])}
 <p class='note'>Escenario del grupo: 50 % impermeable (mitad vías de asfalto, mitad techos) y 50 % prados urbanos. El tc urbano se comprobó con cunetas y tuberías a 1 m/s
