@@ -35,8 +35,11 @@ OUT = RAIZ / "productos/punto2"
 FIG = OUT / "figuras"
 RES = 5.0
 WC_CLASES = {10: "bosque", 20: "arbustal", 30: "pastizal", 40: "cultivos", 50: "urbano", 60: "suelo desnudo", 80: "agua", 90: "humedal"}
-desc05 = pd.read_csv(OUT / "microcuenca_descripcion.csv", index_col=0).iloc[:, 0]
-x0, y0 = wtransform("EPSG:4326", "EPSG:25833", [desc05.lon_cierre], [desc05.lat_cierre]); x0, y0 = x0[0], y0[0]
+# Cierre propuesto: la zanja escogida en la exploracion con Copernicus (script 05) y confirmada en el DGM1. Se fija aqui como
+# decision documentada: la busqueda exploratoria del script 05 sobre el modelo de superficie no debe cambiar la microcuenca final.
+LON0, LAT0 = 14.29499, 51.83914
+x0, y0 = wtransform("EPSG:4326", "EPSG:25833", [LON0], [LAT0]); x0, y0 = x0[0], y0[0]
+assert 450000 <= x0 <= 455000 and 5739000 <= y0 <= 5746000, "el cierre propuesto debe caer dentro de los mosaicos DGM1"
 
 # ---------------------------------------------------------------- mosaico a 5 m
 dgm5 = DIR / "dgm5m_microcuenca.tif"

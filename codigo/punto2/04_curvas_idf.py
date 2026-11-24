@@ -85,15 +85,26 @@ pd.DataFrame(aTb, columns=[f"aT{T}" for T in TS]).round(4).to_csv(OUT / "idf_boo
 banda = {T: (np.percentile(aTb[:, k], 2.5), np.percentile(aTb[:, k], 97.5)) for k, T in enumerate(TS)}
 
 # ---------------------------------------------------------------- 3) KOSTRA-DWD-2020
-geo = pd.read_excel(KOS / "KOSTRA-DWD-2020_geog_Bezug.xlsx", sheet_name="Raster_geog_Bezug")
-dist = (geo.X5_CENT_WGS84 - LON) ** 2 * np.cos(np.radians(LAT)) ** 2 + (geo.Y5_CENT_WGS84 - LAT) ** 2
-celda = geo.loc[dist.idxmin()]
-print(f"KOSTRA: celda INDEX_RC {int(celda.index_rc)} (centro {celda.Y5_CENT_WGS84:.4f} N, {celda.X5_CENT_WGS84:.4f} E)")
+# Las tablas de KOSTRA cubren toda Alemania: la primera corrida guarda solo la celda de la estacion (kostra_celda_cottbus.csv),
+# que es lo que va en la entrega; si el recorte existe, se usa directamente.
+RECORTE = KOS / "kostra_celda_cottbus.csv"
+if not RECORTE.exists():
+    geo = pd.read_excel(KOS / "KOSTRA-DWD-2020_geog_Bezug.xlsx", sheet_name="Raster_geog_Bezug")
+    dist = (geo.X5_CENT_WGS84 - LON) ** 2 * np.cos(np.radians(LAT)) ** 2 + (geo.Y5_CENT_WGS84 - LAT) ** 2
+    celda = geo.loc[dist.idxmin()]
+    partes = []
+    for d in DUR:
+        with zipfile.ZipFile(KOS / f"StatRR_KOSTRA-DWD-2020_D{d:05d}.csv.zip") as zf:
+            t = pd.read_csv(zf.open(zf.namelist()[0]), sep=";", decimal=",", dtype={"INDEX_RC": int})
+        r = t[t.INDEX_RC == int(celda.index_rc)].copy()
+        r.insert(0, "duracion_min", d); r["Y5_CENT_WGS84"] = celda.Y5_CENT_WGS84; r["X5_CENT_WGS84"] = celda.X5_CENT_WGS84
+        partes.append(r)
+    pd.concat(partes).to_csv(RECORTE, index=False)
+rec = pd.read_csv(RECORTE)
+print(f"KOSTRA: celda INDEX_RC {int(rec.INDEX_RC.iloc[0])} (centro {rec.Y5_CENT_WGS84.iloc[0]:.4f} N, {rec.X5_CENT_WGS84.iloc[0]:.4f} E)")
 filas = []
 for d in DUR:
-    with zipfile.ZipFile(KOS / f"StatRR_KOSTRA-DWD-2020_D{d:05d}.csv.zip") as zf:
-        t = pd.read_csv(zf.open(zf.namelist()[0]), sep=";", decimal=",", dtype={"INDEX_RC": int})
-    r = t[t.INDEX_RC == int(celda.index_rc)].iloc[0]
+    r = rec[rec.duracion_min == d].iloc[0]
     for T in [2, 5, 10, 20, 50, 100]:
         hn = r[f"HN_{T:03d}A"]; uc = r[f"UC_{T:03d}A"]
         filas.append({"duracion_min": d, "T": T, "HN_mm": hn, "i_mm_h": hn * 60 / d, "UC_%": uc,
