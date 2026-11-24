@@ -724,7 +724,7 @@ if (P1 / "budyko_resumen.csv").exists() and (P1 / "niebla_resumen.csv").exists()
     D["refo"] = {"f0": f0, "P0": P0, "ETo0": ETo0, "ET0": ET0, "w0": w0, "sT": sT, "rs": Rs_wm2, "rn": Rn_wm2, "dalb": 0.08,
                  "dw": {"nat": dw_nat, "pl": dw_pl}, "franja": float(nz["area_franja_inversion_seca_%"]) / 100}
     FUENTES["p15-refo"] = ("Budyko (1974) en la forma de Fu (1981), con ω calibrado en 1.3; Zhang et al. (2001) para la diferencia bosque–pastizal (w = 2,0 y 0,5); "
-                           "Bosch y Hewlett (1982) para la comprobación y el factor 1,6 de las plantaciones de coníferas o eucalipto frente a latifoliadas; "
+                           "Bosch y Hewlett (1982) para la comprobación y el factor 1,6 de las coníferas frente a las latifoliadas; "
                            "Bonan (2008) y Rotenberg y Yakir (2010) para el efecto del bosque en la temperatura según el clima; Eltahir y Bras (1996) para el reciclaje local; "
                            "Bruijnzeel et al. (2011) para la captura de niebla; CAMELS-PE (cobertura de bosque de la cuenca); notas " + nt(36, 47) + ".")
     ESTAB["p15-refo"] = ("El bosque cambia el balance de energía de la superficie: refleja menos (albedo ≈ 0,12 frente a ≈ 0,20 del pastizal) y es más rugoso, así que "
@@ -738,24 +738,29 @@ if (P1 / "budyko_resumen.csv").exists() and (P1 / "niebla_resumen.csv").exists()
 <div class='two even'><div class='stack'>
 <div class='panel'>
 <div class='ctl'><label for='rf-f'>Bosque</label><input id='rf-f' type='range' min='0' max='100' step='1' value='{f0:.0f}'><output id='rf-fo'></output></div>
-<div class='ctl'><label for='rf-tipo'>Tipo</label><select id='rf-tipo'><option value='nat'>bosque nativo (andino, latifoliado)</option>
-<option value='pl'>plantación (pino o eucalipto)</option></select><span></span></div>
+<div class='ctl'><label for='rf-tipo'>Tipo</label><select id='rf-tipo'><option value='nat'>bosque nativo andino (montano y de queñua)</option>
+<option value='pl'>monocultivo de pino (Pinus patula o P. radiata)</option></select><span></span></div>
 <div class='ctl'><label for='rf-beta'>Efecto en T</label><input id='rf-beta' type='range' min='-1' max='1' step='0.1' value='0'><output id='rf-betao'></output></div>
 <div class='ctl'><label for='rf-rho'>Reciclaje</label><input id='rf-rho' type='range' min='0' max='0.2' step='0.01' value='0.05'><output id='rf-rhoo'></output></div>
 <div class='ctl'><label for='rf-fog'>Niebla</label><input id='rf-fog' type='range' min='0' max='1000' step='50' value='300'><output id='rf-fogo'></output></div>
 <p class='note'>Hoy la cuenca tiene {f(f0)} % de bosque (CAMELS-PE). «Reciclaje»: fracción de la ET extra que vuelve a llover en la cuenca. «Niebla»: agua que atrapa
 cada m² de bosque dentro de la franja de la inversión ({f(100*D['refo']['franja'], 1)} % de la cuenca, 1.5.c), en mm/año. «Efecto en T»: cambio neto de la
 temperatura del aire por cada 100 % de bosque, en °C; su signo es incierto (ver el balance de energía).</p>
+<div class='callout teal'><b>Los dos escenarios y su referencia.</b> <b>Bosque nativo:</b> los bosques que crecían en la cuenca antes de la deforestación:
+bosque montano siempreverde en las laderas húmedas y bosquetes de queñua (<i>Polylepis</i>) en la parte alta. Su ET se calibró con la curva de bosque de
+Zhang et al. (2001): w = 2,0 frente a 0,5 del pastizal. <b>Monocultivo de pino:</b> plantaciones de <i>Pinus patula</i> o <i>P. radiata</i>, como las de la
+sierra de Cajamarca. Las coníferas evaporan más que las latifoliadas: Bosch y Hewlett (1982) hallaron ≈ 40 mm menos de caudal por cada 10 % de coníferas,
+frente a ≈ 25 mm de latifoliadas; por eso su efecto es 40/25 = 1,6 veces el del bosque nativo.</div>
 <div class='readout' id='rf-out'></div></div>
 <div class='panel'><div id='g-refo' style='height:300px'></div></div></div>
 <div><div class='eq'>ET/P = 1 + φ − (1 + φ<sup>ω</sup>)<sup>1/ω</sup>, &nbsp; φ = ETo/P, &nbsp; ω = ω₀ + Δω·(f − f₀)</div>
 <p><b>Cómo funciona:</b> (1) la temperatura cambia según el control «Efecto en T»: el bosque enfría al evaporar (calor latente), pero calienta al
 absorber más sol (albedo ≈ 0,12 frente a ≈ 0,20); el panel de energía muestra cuál gana. (2) ETo cambia {f(100*sT, 1)} % por °C (sensibilidad de 1.1.d). (3) Más bosque significa raíces más profundas e interceptación: sube ω. Δω se calibró para que pasar de pastizal
-a bosque nativo aumente la ET {f(100*(Rz-1))} %, como en las curvas de Zhang et al. (2001) a esta aridez (φ = {f(phi0, 2)}), y 1,6 veces más para pino o eucalipto
+a bosque nativo aumente la ET {f(100*(Rz-1))} %, como en las curvas de Zhang et al. (2001) a esta aridez (φ = {f(phi0, 2)}), y 1,6 veces más para el monocultivo de pino
 (Bosch y Hewlett, 1982). (4) La lluvia sube por reciclaje y por niebla. (5) El caudal es Q = P − ET.</p>
 <p id='rf-txt'></p>
 <p><b>Calor latente frente a albedo:</b> evaporar 1 mm/año de agua consume 0,078 W/m². Pasar al 100 % de bosque nativo sube la ET ≈ 70 mm/año, es decir
-≈ +5 W/m² de calor latente (+8 con pino o eucalipto), pero el bosque más oscuro absorbe ≈ +16 W/m² más de sol. En una cuenca limitada por agua, la ET no
+≈ +5 W/m² de calor latente (+8 con pino), pero el bosque más oscuro absorbe ≈ +16 W/m² más de sol. En una cuenca limitada por agua, la ET no
 puede crecer tanto: la mayor parte de la energía extra se va en <b>calor sensible</b>, que calienta la capa límite. La razón de Bowen baja (de 3,1 a ≈ 2,9), pero
 el calor sensible sube en valor absoluto. Por eso el bosque húmedo tropical enfría (Bonan, 2008), mientras un bosque en clima seco puede calentar el aire
 (Rotenberg y Yakir, 2010). Aquí el signo es incierto, entre ≈ −0,4 y +0,4 °C; el caudal casi no cambia con él (±2 mm).</p>

@@ -106,7 +106,7 @@ const G = {
         `<div><span>Δ sol absorbido</span><b class='c-sw'>${sg(m.Rn - b.Rn, 1)} W/m²</b></div>` +
         `<div><span>Razón de Bowen H/LE</span><b>${nf(m.H / m.LE, 2)}</b></div>`;
       const p10 = modelo(r.f0 + 10, tipo, 0, 0, 0), q10 = modelo(r.f0, tipo, 0, 0, 0).Q - p10.Q;
-      el("rf-txt").innerHTML = `<b>Comprobación:</b> sin reciclaje ni niebla, 10 % más de ${tipo === "nat" ? "bosque nativo" : "plantación"} quita ` +
+      el("rf-txt").innerHTML = `<b>Comprobación:</b> sin reciclaje ni niebla, 10 % más de ${tipo === "nat" ? "bosque nativo" : "monocultivo de pino"} quita ` +
         `<b>${q10.toFixed(0)} mm/año</b> de caudal. Bosch y Hewlett (1982) hallaron ≈ ${tipo === "nat" ? "25" : "40"} mm por cada 10 % en cuencas húmedas; ` +
         `aquí es menos porque la cuenca está limitada por agua (φ ≈ 1,5) y hay menos agua «sobrante» para evaporar. ` +
         `Con la cobertura escogida, ET/P pasa de ${nf(b.ET / b.P, 2)} a ${nf(m.ET / m.P, 2)} y la niebla aporta ${sg(m.Pn)} mm/año.`;
@@ -121,7 +121,9 @@ const G = {
         xaxis: Object.assign(base().xaxis, { title: "cobertura de bosque (%)", range: [0, 100] }),
         yaxis: Object.assign(base().yaxis, { title: "mm/año" }),
         shapes: [{ type: "line", x0: r.f0, x1: r.f0, yref: "paper", y0: 0, y1: 1, line: { color: css("--muted"), dash: "dot" } }],
-        annotations: [{ x: r.f0, y: 0.02, yref: "paper", text: " hoy", showarrow: false, yanchor: "bottom", xanchor: "left", font: { size: 11, color: css("--muted") } }] }), CFG);
+        annotations: [{ x: r.f0, y: 0.02, yref: "paper", text: " hoy", showarrow: false, yanchor: "bottom", xanchor: "left", font: { size: 11, color: css("--muted") } },
+          { x: 1, xref: "paper", y: 1.12, yref: "paper", xanchor: "right", yanchor: "bottom", showarrow: false, font: { size: 11, color: css("--muted") },
+            text: tipo === "nat" ? "bosque nativo · Zhang et al. (2001)" : "monocultivo de pino · ×1,6 (Bosch y Hewlett, 1982)" }] }), CFG);
     }
     if (!el("rf-f").dataset.ok) { ["rf-f", "rf-tipo", "rf-beta", "rf-rho", "rf-fog"].forEach(i => el(i).addEventListener("input", act)); el("rf-f").dataset.ok = 1; }
     act();

@@ -274,9 +274,11 @@ notas(sl, "30 s. Una frase por punto. Si sobra tiempo: si el clima se calienta, 
 # 12 ----------------------------------------------------------------- reserva: reforestacion (grafica nativa)
 sl = prs.slides.add_slide(VACIA)
 titulo(sl, "Reserva: reforestar sube la ET y quita caudal", "Budyko–Fu con ω según la cobertura de bosque · balance de energía de la superficie (mm/año)")
-cd = CategoryChartData(); cd.categories = ["Hoy (15 % bosque)", "100 % bosque nativo", "100 % pino o eucalipto"]
+cd = CategoryChartData(); cd.categories = ["Hoy (15 % bosque)", "100 % bosque nativo", "100 % monocultivo de pino"]
 cd.add_series("ET real", [437, 508, 545]); cd.add_series("Caudal Q", [387, 330, 296])
-gf = sl.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(0.6), Inches(1.6), Inches(6.9), Inches(5.2), cd); gf.name = "Grafica reforestacion"
+gf = sl.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(0.6), Inches(1.6), Inches(6.9), Inches(4.2), cd); gf.name = "Grafica reforestacion"
+texto(sl, 0.6, 5.9, 6.9, 1.1, [[("Bosque nativo: ", {"bold": True}), ("bosque montano y de queñua (Polylepis) de la cuenca; ET según la curva de bosque de Zhang et al. (2001). ", {}),
+                               ("Monocultivo de pino: ", {"bold": True}), ("Pinus patula o P. radiata; 1,6 veces el efecto del nativo (Bosch y Hewlett, 1982: ≈ 40 mm por cada 10 % de coníferas frente a ≈ 25 de latifoliadas).", {})]], size=11, color=PIZARRA)
 ch = gf.chart; ch.has_legend = True; ch.legend.position = XL_LEGEND_POSITION.TOP; ch.legend.include_in_layout = False
 ch.legend.font.size = Pt(12); ch.legend.font.name = FUENTE
 for s_, c in zip(ch.series, [RGBColor(0x2F, 0x7D, 0x4F), ACENTO]):
@@ -287,13 +289,13 @@ for ax in (ch.category_axis, ch.value_axis):
     ax.tick_labels.font.size = Pt(12); ax.tick_labels.font.name = FUENTE; ax.tick_labels.font.color.rgb = PIZARRA
 ch.value_axis.major_gridlines.format.line.color.rgb = RGBColor(0xDD, 0xE3, 0xE8); ch.value_axis.minimum_scale = 0
 texto(sl, 7.85, 1.65, 4.9, 5.2, [
-    [("+5 W/m² ", {"bold": True, "color": RGBColor(0x2F, 0x7D, 0x4F)}), ("de calor latente: la ET sube ≈ 70 mm/año (+8 W/m² con pino o eucalipto).", {})],
+    [("+5 W/m² ", {"bold": True, "color": RGBColor(0x2F, 0x7D, 0x4F)}), ("de calor latente: la ET sube ≈ 70 mm/año (+8 W/m² con el monocultivo de pino).", {})],
     [("+16 W/m² ", {"bold": True, "color": RGBColor(0xB0, 0x7A, 0x0C)}), ("de sol absorbido: el bosque es más oscuro (albedo 0,12 frente a 0,20).", {})],
     [("Gana el calor sensible: ", {"bold": True}), ("la ET no puede gastar toda esa energía porque falta agua. La razón de Bowen baja (3,1 → 2,9), pero el aire puede calentarse: ΔT entre −0,4 y +0,4 °C.", {})],
     [("−15 % a −24 % de caudal, ", {"bold": True, "color": ACENTO}), ("sea cual sea el signo de ΔT (Bosch y Hewlett, 1982).", {})]], size=15)
 pie(sl, "Zhang et al. (2001); Bonan (2008); Rotenberg y Yakir (2010); Bosch y Hewlett (1982); reciclaje 5 %, niebla 300 mm/año en la franja")
 notas(sl, "Solo si preguntan qué pasaría si cambia la cobertura. Más bosque sube el parámetro ω de Budyko: raíces más profundas e interceptación, "
-          "así que evapora más y quita caudal. Evaporar consume energía, el calor latente: unos 5 W/m² más. Pero el bosque es más oscuro y absorbe "
+          "así que evapora más y quita caudal. Bosque nativo es el bosque montano y de queñua que crecía en la cuenca; el pino evapora más porque es una conífera siempreverde de crecimiento rápido. Evaporar consume energía, el calor latente: unos 5 W/m² más. Pero el bosque es más oscuro y absorbe "
           "unos 16 W/m² más de sol. Como falta agua, la evaporación no alcanza a gastar esa energía y sube el calor sensible: el aire puede "
           "calentarse en vez de enfriarse, como en bosques de zonas secas (Rotenberg y Yakir, 2010). En los trópicos húmedos, en cambio, el bosque "
           "enfría (Bonan, 2008). El caudal baja igual, porque depende de la ET y no de la temperatura.")
