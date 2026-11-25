@@ -298,12 +298,16 @@ pill.adjustments[0] = 0.5; pill.fill.solid(); pill.fill.fore_color.rgb = AMBAR; 
 tf = pill.text_frame; tf.margin_top = tf.margin_bottom = Inches(0.02); tf.paragraphs[0].alignment = PP_ALIGN.CENTER
 r = tf.paragraphs[0].add_run(); r.text = "FUN FACT"; r.font.size = Pt(16); r.font.bold = True; r.font.name = FUENTE; r.font.color.rgb = BOSQUE
 texto(sl, 0.6, 1.05, 12.1, 0.8, "Un pinar en Cottbus deja casi sin agua al acuífero", size=34, bold=True, color=BLANCO)
-texto(sl, 0.6, 1.75, 12.1, 0.5, "…y baja solo un poco el riesgo de inundación: si la microcuenca de 0,44 km² se reforesta", size=20, color=LIMA)
-card = sl.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(2.45), Inches(6.7), Inches(3.55)); card.name = "Fondo grafica"
+texto(sl, 0.6, 1.75, 12.1, 0.5, "…con pino sube el riesgo de incendios, y el de inundación baja poco (microcuenca de 0,44 km²)", size=19, color=LIMA)
+card = sl.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(2.45), Inches(6.7), Inches(2.75)); card.name = "Fondo grafica"
 card.adjustments[0] = 0.06; card.fill.solid(); card.fill.fore_color.rgb = BLANCO; card.line.fill.background(); card.shadow.inherit = False
 cd = CategoryChartData(); cd.categories = ["Hoy (17 % bosque)", "100 % bosque nativo", "100 % pino silvestre"]
 cd.add_series("ET real (mm/año)", [round(v) for v in esc.ET_mm]); cd.add_series("Recarga y zanjas (mm/año)", [round(v) for v in esc.Q_mm])
-gf = sl.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(0.8), Inches(2.55), Inches(6.3), Inches(3.35), cd); gf.name = "Grafica reforestacion"
+gf = sl.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(0.8), Inches(2.52), Inches(6.3), Inches(2.62), cd); gf.name = "Grafica reforestacion"
+fg = sl.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(5.3), Inches(6.7), Inches(0.72)); fg.name = "Incendios"
+fg.adjustments[0] = 0.2; fg.fill.solid(); fg.fill.fore_color.rgb = RGBColor(0x5A, 0x2E, 0x22); fg.line.fill.background(); fg.shadow.inherit = False
+texto(sl, 0.75, 5.33, 6.45, 0.68, [[("Incendios: ", {"bold": True, "color": AMBAR}), ("Brandeburgo tiene más del 30 % de los incendios forestales de Alemania. "
+      "Los pinares puros se dañan mucho más que los bosques con hoja ancha (Thünen, 2022): plantar pino sube el riesgo; el bosque mixto lo baja.", {"color": BLANCO})]], size=11)
 ch = gf.chart; ch.has_legend = True; ch.legend.position = XL_LEGEND_POSITION.TOP; ch.legend.include_in_layout = False
 ch.legend.font.size = Pt(12); ch.legend.font.name = FUENTE
 for s_, c in zip(ch.series, [RGBColor(0x2F, 0x7D, 0x4F), ACENTO]):
@@ -332,7 +336,7 @@ notas(sl, "Fun fact para cerrar. ¿Qué pasaría si la microcuenca de Cottbus se
           "llueven 564 mm y la atmósfera pide 749. Con pino, la evaporación sube unos 100 mm al año, porque es siempreverde, intercepta lluvia en las "
           "copas y transpira todo el año; el agua que queda para el acuífero y las zanjas baja dos tercios. Para la alcantarilla, en cambio, el bosque "
           "casi no importa: C baja de 0,34 a 0,31 y el tubo sigue siendo de 1,00 m, porque las crecientes las hacen tormentas fuertes que saturan "
-          "cualquier suelo. El riesgo de inundación baja un poco: el tubo pasa a aguantar T de unos 167 años en vez de 127, y el riesgo en 30 años baja de 21 a 16 %. Esto se estudia en la BTU de Cottbus: el grupo del profesor Christoph Hinz muestra que la evaporación, según el uso del suelo, decide la recarga del acuífero, y en el sitio Hühnerwasser mide el efecto de cada especie de árbol. La medida que se propone en la región es convertir los pinares en bosques mixtos.")
+          "cualquier suelo. El riesgo de inundación baja un poco: el tubo pasa a aguantar T de unos 167 años en vez de 127, y el riesgo en 30 años baja de 21 a 16 %. Esto se estudia en la BTU de Cottbus: el grupo del profesor Christoph Hinz muestra que la evaporación, según el uso del suelo, decide la recarga del acuífero, y en el sitio Hühnerwasser mide el efecto de cada especie de árbol. La medida que se propone en la región es convertir los pinares en bosques mixtos, que además arden menos: Brandeburgo tiene más del 30 % de los incendios forestales de Alemania, y el Instituto Thünen encontró que los pinares puros se dañan mucho más que los bosques con hoja ancha.")
 
 ruta = OUT / "T2_202602_Schwebel_presentacion.pptx"
 prs.save(ruta)
