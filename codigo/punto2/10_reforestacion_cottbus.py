@@ -12,7 +12,8 @@ radiacion solar por la ecuacion de Angstrom con las horas de sol, FAO-56 ec. 35;
 Balance de energia: calor latente LE = ET lambda; sol absorbido extra por el menor albedo (pastizal 0.22, latifoliado 0.16,
 pino 0.10; Oke, 1987); calor sensible H = Rn - LE; razon de Bowen H/LE.
 Diseno: C(T = 25) de bosque en zonas planas (Chow et al., 1988, tabla 15.1.1) en vez del ponderado actual -> caudal y diametro
-de la alcantarilla del problema A (el tc de Kirpich solo depende del cauce).
+de la alcantarilla del problema A (el tc de Kirpich solo depende del cauce), y riesgo de inundacion: periodo de retorno que
+aguanta el tubo instalado y su riesgo en 30 anos, con C(T) de pastizal y de bosque.
 Salidas: productos/punto2/reforestacion_cottbus_parametros.csv, reforestacion_cottbus_escenarios.csv
 """
 from pathlib import Path
@@ -25,6 +26,9 @@ import pandas as pd
 RAIZ = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(RAIZ / "codigo/punto1"))
 import fao56 as F
+sys.path.insert(0, str(RAIZ / "codigo/punto2"))
+import distribuciones as Dd
+from scipy.optimize import brentq
 
 OUT = RAIZ / "productos/punto2"
 LAT, Z = 51.7759, 69.0                                       # estacion 00880
@@ -69,6 +73,20 @@ DN = np.array([0.30, 0.40, 0.50, 0.60, 0.80, 1.00, 1.20, 1.40, 1.60, 1.80, 2.00]
 Dcalc = lambda Q: (0.013 * Q / (0.312 * 0.005 ** 0.5)) ** (3 / 8)
 
 
+# riesgo de inundacion: periodo de retorno que aguanta el tubo instalado (DN 1.00 m) con C(T) de Chow (tabla 15.1.1)
+ip = pd.read_csv(OUT / "idf_parametros.csv").set_index("parametro").valor
+TS = np.array([2, 5, 10, 25, 50, 100])
+C_PAST = np.array([0.25, 0.28, 0.30, 0.34, 0.37, 0.41]); C_BOS = np.array([0.22, 0.25, 0.28, 0.31, 0.35, 0.39])
+i_tc = lambda T: Dd._gev_q(ip.gev_mu, ip.gev_sigma, ip.gev_xi, T) / (ra_.tc_min / 60 + ip.theta_h) ** ip.eta
+
+
+def T_tubo(f_bosque):
+    """T cuya lluvia de duracion tc llena el tubo (Qcap), con C(T) ponderado por cobertura (el C de tabla se mantiene sobre T = 100)."""
+    C = lambda T: (1 - f_bosque) * np.interp(T, TS, C_PAST) + f_bosque * np.interp(T, TS, C_BOS)
+    g = lambda lt: C(10 ** lt) * i_tc(10 ** lt) * desc.area_km2 * ra_.FRA / 3.6 - ra_.Qcap_m3_s
+    return 10 ** brentq(g, np.log10(2.0), 5.0)
+
+
 def escenario(f_bosque, tipo, beta=0.0):
     """f_bosque: fraccion de bosque (0-1); tipo: 'nativo' o 'pino' para el bosque NUEVO (el 17 % actual se toma como nativo)."""
     phi_ = ETo * (1 + sT * beta * (f_bosque - fb0)) / P
@@ -82,7 +100,8 @@ def escenario(f_bosque, tipo, beta=0.0):
     C = ((1 - f_bosque) * 0.34 + f_bosque * C_BOSQUE_T25)    # Chow T = 25: pastizal 0.34, bosque 0.31
     Q = ra_.Q_m3_s * C / ra_.C
     return {"ET_mm": ET, "Q_mm": P - ET, "Q_m3_anio": (P - ET) / 1000 * desc.area_km2 * 1e6, "LE_W_m2": LE, "sol_extra_W_m2": sol,
-            "H_W_m2": H, "bowen": H / LE, "C_T25": C, "Qp_m3_s": Q, "D_calc_m": Dcalc(Q), "DN_m": DN[np.searchsorted(DN, Dcalc(Q))]}
+            "H_W_m2": H, "bowen": H / LE, "C_T25": C, "Qp_m3_s": Q, "D_calc_m": Dcalc(Q), "DN_m": DN[np.searchsorted(DN, Dcalc(Q))],
+            "T_tubo_anios": T_tubo(f_bosque), "riesgo_30a_%": 100 * (1 - (1 - 1 / T_tubo(f_bosque)) ** 30)}
 
 
 pd.Series({"P_mm": P, "ETo_mm": ETo, "phi": phi, "sT_por_C": sT, "Rs_W_m2": Rs, "Rn_W_m2": Rn, "bosque_hoy": fb0,
@@ -96,4 +115,4 @@ ES = pd.DataFrame(filas); ES["dQ_%"] = 100 * (ES.Q_mm / ES.Q_mm.iloc[0] - 1)
 ES.round(4).to_csv(OUT / "reforestacion_cottbus_escenarios.csv", index=False)
 print(f"Cottbus {anual.index.min()}-{anual.index.max()} ({len(anual)} anos): P = {P:.0f} mm, ETo = {ETo:.0f} mm, phi = {phi:.2f}, "
       f"ETo +{100*sT:.1f} %/C, Rs = {Rs:.0f} W/m2, Rn = {Rn:.0f} W/m2")
-print(ES[["escenario", "ET_mm", "Q_mm", "dQ_%", "LE_W_m2", "sol_extra_W_m2", "bowen", "C_T25", "Qp_m3_s", "D_calc_m", "DN_m"]].round(2).to_string(index=False))
+print(ES[["escenario", "ET_mm", "Q_mm", "dQ_%", "LE_W_m2", "sol_extra_W_m2", "bowen", "C_T25", "Qp_m3_s", "DN_m", "T_tubo_anios", "riesgo_30a_%"]].round(2).to_string(index=False))

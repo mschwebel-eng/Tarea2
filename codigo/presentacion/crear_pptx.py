@@ -298,12 +298,12 @@ pill.adjustments[0] = 0.5; pill.fill.solid(); pill.fill.fore_color.rgb = AMBAR; 
 tf = pill.text_frame; tf.margin_top = tf.margin_bottom = Inches(0.02); tf.paragraphs[0].alignment = PP_ALIGN.CENTER
 r = tf.paragraphs[0].add_run(); r.text = "FUN FACT"; r.font.size = Pt(16); r.font.bold = True; r.font.name = FUENTE; r.font.color.rgb = BOSQUE
 texto(sl, 0.6, 1.05, 12.1, 0.8, "Un pinar en Cottbus deja casi sin agua al acuífero", size=34, bold=True, color=BLANCO)
-texto(sl, 0.6, 1.8, 12.1, 0.5, "…pero casi no cambia la alcantarilla: si la microcuenca de 0,44 km² se reforesta", size=20, color=LIMA)
-card = sl.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(2.55), Inches(6.7), Inches(4.25)); card.name = "Fondo grafica"
+texto(sl, 0.6, 1.75, 12.1, 0.5, "…y baja solo un poco el riesgo de inundación: si la microcuenca de 0,44 km² se reforesta", size=20, color=LIMA)
+card = sl.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(2.45), Inches(6.7), Inches(3.55)); card.name = "Fondo grafica"
 card.adjustments[0] = 0.06; card.fill.solid(); card.fill.fore_color.rgb = BLANCO; card.line.fill.background(); card.shadow.inherit = False
 cd = CategoryChartData(); cd.categories = ["Hoy (17 % bosque)", "100 % bosque nativo", "100 % pino silvestre"]
 cd.add_series("ET real (mm/año)", [round(v) for v in esc.ET_mm]); cd.add_series("Recarga y zanjas (mm/año)", [round(v) for v in esc.Q_mm])
-gf = sl.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(0.8), Inches(2.7), Inches(6.3), Inches(3.95), cd); gf.name = "Grafica reforestacion"
+gf = sl.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, Inches(0.8), Inches(2.55), Inches(6.3), Inches(3.35), cd); gf.name = "Grafica reforestacion"
 ch = gf.chart; ch.has_legend = True; ch.legend.position = XL_LEGEND_POSITION.TOP; ch.legend.include_in_layout = False
 ch.legend.font.size = Pt(12); ch.legend.font.name = FUENTE
 for s_, c in zip(ch.series, [RGBColor(0x2F, 0x7D, 0x4F), ACENTO]):
@@ -313,21 +313,26 @@ pl.data_labels.font.size = Pt(13); pl.data_labels.font.bold = True; pl.data_labe
 for ax in (ch.category_axis, ch.value_axis):
     ax.tick_labels.font.size = Pt(12); ax.tick_labels.font.name = FUENTE; ax.tick_labels.font.color.rgb = PIZARRA
 ch.value_axis.major_gridlines.format.line.color.rgb = RGBColor(0xDD, 0xE3, 0xE8); ch.value_axis.minimum_scale = 0
-datos_ff = [(f"+{dET.iloc[2]:.0f} mm/año", f"más evaporación con un monocultivo de pino (+{dET.iloc[1]:.0f} con bosque nativo): siempreverde, intercepta y transpira todo el año"),
-            (f"{dQ.iloc[2]:.0f} % / {dQ.iloc[1]:.0f} %".replace("-", "−"), "menos agua para recargar el acuífero y las zanjas (pino / bosque nativo)"),
-            (f"{esc.Qp_m3_s.iloc[0]:.2f} → {esc.Qp_m3_s.iloc[2]:.2f} m³/s".replace(".", ","), "caudal de diseño con C de bosque (0,31): el tubo sigue siendo de 1,00 m")]
+datos_ff = [(f"+{dET.iloc[2]:.0f} mm/año", f"más evaporación con pino (+{dET.iloc[1]:.0f} con bosque nativo): siempreverde, intercepta y transpira todo el año"),
+            (f"{dQ.iloc[2]:.0f} % / {dQ.iloc[1]:.0f} %".replace("-", "−"), "menos recarga del acuífero y las zanjas (pino / bosque nativo)"),
+            (f"{esc['riesgo_30a_%'].iloc[0]:.0f} % → {esc['riesgo_30a_%'].iloc[2]:.0f} %", f"riesgo de inundación en 30 años: el tubo de 1,00 m aguanta T ≈ {esc.T_tubo_anios.iloc[0]:.0f} → {esc.T_tubo_anios.iloc[2]:.0f} años")]
 for k, (cifra, etq) in enumerate(datos_ff):
-    y = 2.55 + k * 1.45
-    texto(sl, 7.75, y, 5.0, 0.6, cifra, size=30, bold=True, color=AMBAR)
-    texto(sl, 7.75, y + 0.6, 5.0, 0.8, etq, size=14, color=BLANCO)
-texto(sl, 0.6, 6.88, 12.1, 0.3, "Pino silvestre (Pinus sylvestris). Bosque nativo: roble pedunculado, carpe y aliso negro (Quercus robur, Carpinus betulus, Alnus glutinosa; Hofmann y Pommer, 2005). "
+    y = 2.4 + k * 1.2
+    texto(sl, 7.75, y, 5.0, 0.55, cifra, size=26, bold=True, color=AMBAR)
+    texto(sl, 7.75, y + 0.5, 5.0, 0.7, etq, size=13, color=BLANCO)
+hz = caja_ff = sl.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.6), Inches(6.12), Inches(12.15), Inches(0.72)); hz.name = "BTU Cottbus"
+hz.adjustments[0] = 0.2; hz.fill.solid(); hz.fill.fore_color.rgb = RGBColor(0x2A, 0x5E, 0x4B); hz.line.fill.background(); hz.shadow.inherit = False
+texto(sl, 0.8, 6.17, 11.8, 0.65, [[("BTU Cottbus: ", {"bold": True, "color": AMBAR}),
+      ("el grupo del Prof. Christoph Hinz muestra que la evaporación, según el uso del suelo, «bestimmt letztlich die Grundwasserneubildung»; "
+       "en el sitio Hühnerwasser mide el efecto de cada especie de árbol. Medida propuesta: convertir los pinares en bosque mixto.", {"color": BLANCO})]], size=11.5)
+texto(sl, 0.6, 6.9, 12.1, 0.3, "Pino silvestre (Pinus sylvestris). Bosque nativo: roble pedunculado, carpe y aliso negro (Quercus robur, Carpinus betulus, Alnus glutinosa; Hofmann y Pommer, 2005). "
       "ET: Zhang et al. (2001); pino ×1,6 (Bosch y Hewlett, 1982). Modelo: codigo/punto2/10_reforestacion_cottbus.py", size=10, color=LIMA)
 notas(sl, "Fun fact para cerrar. ¿Qué pasaría si la microcuenca de Cottbus se llena de bosque? En Brandeburgo el bosque plantado típico es un "
           "monocultivo de pino silvestre; el bosque nativo de la llanura del Spree sería de roble pedunculado, carpe y aliso negro. Cottbus es seco: "
           "llueven 564 mm y la atmósfera pide 749. Con pino, la evaporación sube unos 100 mm al año, porque es siempreverde, intercepta lluvia en las "
           "copas y transpira todo el año; el agua que queda para el acuífero y las zanjas baja dos tercios. Para la alcantarilla, en cambio, el bosque "
           "casi no importa: C baja de 0,34 a 0,31 y el tubo sigue siendo de 1,00 m, porque las crecientes las hacen tormentas fuertes que saturan "
-          "cualquier suelo. Y la temperatura: el pino evapora más, pero es oscuro y absorbe más sol; el efecto neto es incierto.")
+          "cualquier suelo. El riesgo de inundación baja un poco: el tubo pasa a aguantar T de unos 167 años en vez de 127, y el riesgo en 30 años baja de 21 a 16 %. Esto se estudia en la BTU de Cottbus: el grupo del profesor Christoph Hinz muestra que la evaporación, según el uso del suelo, decide la recarga del acuífero, y en el sitio Hühnerwasser mide el efecto de cada especie de árbol. La medida que se propone en la región es convertir los pinares en bosques mixtos.")
 
 ruta = OUT / "T2_202602_Schwebel_presentacion.pptx"
 prs.save(ruta)
