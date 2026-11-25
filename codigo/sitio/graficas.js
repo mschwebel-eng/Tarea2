@@ -78,54 +78,52 @@ function rgba(hex, a) {
 const e0 = t => 0.6108 * Math.exp(17.27 * t / (t + 237.3));   // FAO-56 ec. 11
 
 const G = {
-  "p15-refo": () => {
-    const r = D.refo, fu = (p, w) => 1 + p - Math.pow(1 + Math.pow(p, w), 1 / w);
-    const el = id => document.getElementById(id);
-    function modelo(f, tipo, rho, fog, beta) {
-      const dT = beta * (f - r.f0) / 100, ETo = r.ETo0 * (1 + r.sT * dT), w = r.w0 + r.dw[tipo] * (f - r.f0) / 100;
-      const Pn = r.franja * (f - r.f0) / 100 * fog;
-      let P = r.P0 + Pn, ET = r.ET0;
-      for (let k = 0; k < 40; k++) { ET = P * fu(ETo / P, w); P = r.P0 + rho * (ET - r.ET0) + Pn; }
-      const k = 2.45e6 / 3.1536e7, LE = ET * k, Rn = r.rn + r.dalb * (f - r.f0) / 100 * r.rs, H = Rn - LE;
-      return { dT, ETo, P, ET, Q: P - ET, w, Pn, LE, Rn, H };
+  "p26-refo": () => {
+    const r = D.refoc, el = id => document.getElementById(id), K = 2.45e6 / 3.1536e7;
+    const zh = (p, w) => (1 + w * p) / (1 + w * p + 1 / p);
+    const DN = [0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0], Dc = Q => Math.pow(0.013 * Q / (0.312 * Math.sqrt(0.005)), 3 / 8);
+    const nf = (v, d = 0) => Math.abs(v).toFixed(d).replace(".", ","), sg = (v, d = 0) => (+Math.abs(v).toFixed(d) === 0 ? "±" : v > 0 ? "+" : "−") + nf(v, d);
+    function modelo(fb, tipo, beta) {
+      const fb0 = r.bosque_hoy, phi = r.ETo_mm * (1 + r.sT_por_C * beta * (fb - fb0)) / r.P_mm;
+      const etp = r.P_mm * zh(phi, 0.5), etb = r.P_mm * zh(phi, 2.0), etn = tipo === "nativo" ? etb : etp + 1.6 * (etb - etp);
+      const extra = Math.max(fb - fb0, 0), base = Math.min(fb, fb0);
+      const ET = (1 - fb) * etp + base * etb + extra * etn;
+      const alb = (1 - fb) * r.albedo_pastizal + base * r.albedo_nativo + extra * (tipo === "nativo" ? r.albedo_nativo : r.albedo_pino);
+      const alb0 = (1 - fb0) * r.albedo_pastizal + fb0 * r.albedo_nativo, sol = (alb0 - alb) * r.Rs_W_m2, LE = ET * K, H = r.Rn_W_m2 + sol - LE;
+      const C = (1 - fb) * 0.34 + fb * r.C_bosque, Q = r.Qp_hoy_m3_s * C / r.C_hoy, D = Dc(Q);
+      return { ET, Q: r.P_mm - ET, LE, sol, H, C, Qp: Q, D, DN: DN.find(x => x >= D), dT: beta * (fb - fb0) };
     }
     function act() {
-      const f = +el("rf-f").value, tipo = el("rf-tipo").value, rho = +el("rf-rho").value, fog = +el("rf-fog").value, beta = +el("rf-beta").value;
-      el("rf-betao").textContent = (beta > 0 ? "+" : beta < 0 ? "−" : "") + Math.abs(beta).toFixed(1).replace(".", ",") + " °C";
-      el("rf-fo").textContent = f + " %"; el("rf-rhoo").textContent = (100 * rho).toFixed(0) + " %"; el("rf-fogo").textContent = fog + " mm";
-      const m = modelo(f, tipo, rho, fog, beta), b = modelo(r.f0, tipo, rho, fog, beta);
-      const nf = (v, d = 0) => Math.abs(v).toFixed(d).replace(".", ","), sg = (v, d = 0) => (+Math.abs(v).toFixed(d) === 0 ? "±" : v > 0 ? "+" : "−") + nf(v, d);
-      el("rf-out").innerHTML =
+      let fb = +el("rc-f").value / 100; const tipo = el("rc-tipo").value, beta = +el("rc-beta").value;
+      if (Math.abs(fb - r.bosque_hoy) < 0.006) fb = r.bosque_hoy;
+      el("rc-fo").textContent = Math.round(100 * fb) + " %"; el("rc-betao").textContent = sg(beta, 1) + " °C";
+      const m = modelo(fb, tipo, beta), b = modelo(r.bosque_hoy, tipo, beta);
+      el("rc-out").innerHTML =
+        `<div><span>ET real</span><b class='c-data'>${nf(m.ET)} mm</b></div>` +
+        `<div><span>Recarga y zanjas</span><b class='c-lw'>${nf(m.Q)} mm</b></div>` +
+        `<div><span>Frente a hoy</span><b class='c-lw'>${sg(100 * (m.Q / b.Q - 1))} %</b></div>` +
         `<div><span>Temperatura</span><b class='c-arch'>${sg(m.dT, 2)} °C</b></div>` +
-        `<div><span>ETo</span><b class='c-sw'>${m.ETo.toFixed(0)} mm</b></div>` +
-        `<div><span>Lluvia P</span><b>${m.P.toFixed(0)} mm</b></div>` +
-        `<div><span>ET real</span><b class='c-data'>${m.ET.toFixed(0)} mm</b></div>` +
-        `<div><span>Caudal Q</span><b class='c-lw'>${m.Q.toFixed(0)} mm</b></div>` +
-        `<div><span>Q frente a hoy</span><b class='c-lw'>${sg(100 * (m.Q / b.Q - 1), 1)} %</b></div>` +
         `<div><span>Δ calor latente</span><b class='c-data'>${sg(m.LE - b.LE, 1)} W/m²</b></div>` +
-        `<div><span>Δ sol absorbido</span><b class='c-sw'>${sg(m.Rn - b.Rn, 1)} W/m²</b></div>` +
-        `<div><span>Razón de Bowen H/LE</span><b>${nf(m.H / m.LE, 2)}</b></div>`;
-      const p10 = modelo(r.f0 + 10, tipo, 0, 0, 0), q10 = modelo(r.f0, tipo, 0, 0, 0).Q - p10.Q;
-      el("rf-txt").innerHTML = `<b>Comprobación:</b> sin reciclaje ni niebla, 10 % más de ${tipo === "nat" ? "bosque nativo" : "monocultivo de pino"} quita ` +
-        `<b>${q10.toFixed(0)} mm/año</b> de caudal. Bosch y Hewlett (1982) hallaron ≈ ${tipo === "nat" ? "25" : "40"} mm por cada 10 % en cuencas húmedas; ` +
-        `aquí es menos porque la cuenca está limitada por agua (φ ≈ 1,5) y hay menos agua «sobrante» para evaporar. ` +
-        `Con la cobertura escogida, ET/P pasa de ${nf(b.ET / b.P, 2)} a ${nf(m.ET / m.P, 2)} y la niebla aporta ${sg(m.Pn)} mm/año.`;
-      const F = [], Qs = [], ETs = [], Ps = [];
-      for (let x = 0; x <= 100; x += 2) { const z = modelo(x, tipo, rho, fog, beta); F.push(x); Qs.push(z.Q); ETs.push(z.ET); Ps.push(z.P); }
-      Plotly.react("g-refo", [
-        { x: F, y: Ps, name: "P", mode: "lines", line: { color: css("--fg"), width: 2 }, hovertemplate: "%{x} % · P %{y:.0f} mm<extra></extra>" },
+        `<div><span>Δ sol absorbido</span><b class='c-sw'>${sg(m.sol - b.sol, 1)} W/m²</b></div>` +
+        `<div><span>Razón de Bowen</span><b>${nf(m.H / m.LE, 2)}</b></div>` +
+        `<div><span>Alcantarilla</span><b>${nf(m.Qp, 2)} m³/s → DN ${nf(m.DN, 2)}</b></div>`;
+      el("rc-txt").innerHTML = `<b>Balance de energía:</b> el bosque evapora más y gasta ${sg(m.LE - b.LE, 1)} W/m² en calor latente, pero por su menor albedo ` +
+        `absorbe ${sg(m.sol - b.sol, 1)} W/m² más de sol. ${Math.abs(m.sol - b.sol) < 0.5 ? "Mueve el control de bosque para ver qué gana." : m.sol - b.sol > m.LE - b.LE ? "Gana el sol extra: sube el calor sensible y el aire puede calentarse." : "La evaporación alcanza a gastar el sol extra: el aire tiende a enfriarse."}`;
+      const F = [], ETs = [], Qs = [];
+      for (let x = 0; x <= 100; x += 2) { const z = modelo(x / 100, tipo, beta); F.push(x); ETs.push(z.ET); Qs.push(z.Q); }
+      Plotly.react("g-refoc", [
         { x: F, y: ETs, name: "ET real", mode: "lines", line: { color: css("--data"), width: 2 }, hovertemplate: "%{x} % · ET %{y:.0f} mm<extra></extra>" },
-        { x: F, y: Qs, name: "Q", mode: "lines", line: { color: css("--lw"), width: 2 }, hovertemplate: "%{x} % · Q %{y:.0f} mm<extra></extra>" },
-        { x: [f, f, f], y: [m.P, m.ET, m.Q], mode: "markers", marker: { size: 10, color: [css("--fg"), css("--data"), css("--lw")] }, showlegend: false, hoverinfo: "skip" }
+        { x: F, y: Qs, name: "recarga y zanjas", mode: "lines", line: { color: css("--lw"), width: 2 }, hovertemplate: "%{x} % · %{y:.0f} mm<extra></extra>" },
+        { x: [100 * fb, 100 * fb], y: [m.ET, m.Q], mode: "markers", marker: { size: 10, color: [css("--data"), css("--lw")] }, showlegend: false, hoverinfo: "skip" }
       ], base({ margin: { l: 52, r: 12, t: 30, b: 44 },
         xaxis: Object.assign(base().xaxis, { title: "cobertura de bosque (%)", range: [0, 100] }),
-        yaxis: Object.assign(base().yaxis, { title: "mm/año" }),
-        shapes: [{ type: "line", x0: r.f0, x1: r.f0, yref: "paper", y0: 0, y1: 1, line: { color: css("--muted"), dash: "dot" } }],
-        annotations: [{ x: r.f0, y: 0.02, yref: "paper", text: " hoy", showarrow: false, yanchor: "bottom", xanchor: "left", font: { size: 11, color: css("--muted") } },
+        yaxis: Object.assign(base().yaxis, { title: "mm/año", rangemode: "tozero" }),
+        shapes: [{ type: "line", x0: 100 * r.bosque_hoy, x1: 100 * r.bosque_hoy, yref: "paper", y0: 0, y1: 1, line: { color: css("--muted"), dash: "dot" } }],
+        annotations: [{ x: 100 * r.bosque_hoy, y: 0.02, yref: "paper", text: " hoy", showarrow: false, yanchor: "bottom", xanchor: "left", font: { size: 11, color: css("--muted") } },
           { x: 1, xref: "paper", y: 1.12, yref: "paper", xanchor: "right", yanchor: "bottom", showarrow: false, font: { size: 11, color: css("--muted") },
-            text: tipo === "nat" ? "bosque nativo · Zhang et al. (2001)" : "monocultivo de pino · ×1,6 (Bosch y Hewlett, 1982)" }] }), CFG);
+            text: tipo === "nativo" ? "bosque nativo · Zhang et al. (2001)" : "pino · ×1,6 (Bosch y Hewlett, 1982)" }] }), CFG);
     }
-    if (!el("rf-f").dataset.ok) { ["rf-f", "rf-tipo", "rf-beta", "rf-rho", "rf-fog"].forEach(i => el(i).addEventListener("input", act)); el("rf-f").dataset.ok = 1; }
+    if (!el("rc-f").dataset.ok) { ["rc-f", "rc-tipo", "rc-beta"].forEach(i => el(i).addEventListener("input", act)); el("rc-f").dataset.ok = 1; }
     act();
   },
   "p1-dia": () => {

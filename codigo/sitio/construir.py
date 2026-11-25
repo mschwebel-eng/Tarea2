@@ -126,8 +126,8 @@ alcantarilla y un tanque de detención con la lluvia de 10 minutos de Cottbus (A
 qué la limita cada mes y qué tan seguros estamos.</p></button>
 <button class='card lift pick' type='button' data-go='p2-sitio'><h4>2 · Diseño hidrológico</h4><p>Por qué Cottbus, y la serie
 de 10 minutos que sostiene la IDF.</p></button>
-<button class='card lift pick' type='button' data-go='p15-refo'><h4>¿Y si reforestamos?</h4><p>Diapositiva interactiva:
-bosque, temperatura, ET, lluvia y caudal del Chicama.</p></button>
+<button class='card lift pick' type='button' data-go='p26-refo'><h4>¿Y si reforestamos?</h4><p>Diapositiva interactiva:
+pino o bosque nativo en la microcuenca de Cottbus.</p></button>
 </div>
 <p class='note' style='margin-top:16px'>Todos los resultados salen del código publicado en
 <a href='https://github.com/mschwebel-eng/Tarea2'>github.com/mschwebel-eng/Tarea2</a>.</p>
@@ -702,60 +702,6 @@ plan = [("1.1.a", "ETo FAO-56 diaria → mensual; error por promediar", "hecho" 
         ("1.3", "Energía o agua: régimen mensual, Budyko–Fu, elasticidad", "hecho" if hay_13 else "pend"),
         ("1.4", "Tendencias y atribución de la tendencia de ETo (+ bono de Budyko)", "hecho" if hay_14 else "pend"),
         ("1.5", "Gradiente altitudinal (1.5.a) y niebla bajo la inversión (1.5.c)", "hecho" if (hay_15a and hay_15c) else "pend")]
-if (P1 / "reforestacion_parametros.csv").exists():
-    rp = pd.read_csv(P1 / "reforestacion_parametros.csv", index_col=0).valor      # 17_reforestacion.py
-    f0, phi0, Rz, sT = float(rp["f0_%"]), float(rp.phi0), float(rp.razon_Zhang), float(rp.sT_por_C)
-    D["refo"] = {"f0": f0, "P0": float(rp.P0_mm), "ETo0": float(rp.ETo0_mm), "ET0": float(rp.ET0_mm), "w0": float(rp.w0), "sT": sT,
-                 "rs": float(rp.Rs_W_m2), "rn": float(rp.Rn_W_m2), "dalb": float(rp.dalb),
-                 "dw": {"nat": float(rp.dw_nativo), "pl": float(rp.dw_pino)}, "franja": float(rp.franja)}
-    FUENTES["p15-refo"] = ("Budyko (1974) en la forma de Fu (1981), con ω calibrado en 1.3; Zhang et al. (2001) para la diferencia bosque–pastizal (w = 2,0 y 0,5); "
-                           "Bosch y Hewlett (1982) para la comprobación y el factor 1,6 de las coníferas frente a las latifoliadas; "
-                           "Bonan (2008) y Rotenberg y Yakir (2010) para el efecto del bosque en la temperatura según el clima; Eltahir y Bras (1996) para el reciclaje local; "
-                           "Bruijnzeel et al. (2011) para la captura de niebla; CAMELS-PE (cobertura de bosque de la cuenca); notas " + nt(36, 47) + ".")
-    ESTAB["p15-refo"] = ("El bosque cambia el balance de energía de la superficie: refleja menos (albedo ≈ 0,12 frente a ≈ 0,20 del pastizal) y es más rugoso, así que "
-                         "mezcla mejor el aire. Como evapora más, una parte mayor de la energía se va en calor latente (baja la razón de Bowen), pero como también absorbe "
-                         "más sol, en esta cuenca limitada por agua el calor sensible sube en valor absoluto: la capa límite queda algo más húmeda y "
-                         "también más caliente y profunda de día, lo que la acerca al nivel de condensación. En la estación seca, la inversión de subsidencia sigue "
-                         "tapando la convección: el vapor extra se queda debajo como nubosidad baja y no llueve. Solo en la estación húmeda, con la atmósfera inestable, "
-                         "parte de ese vapor puede volver a caer en la cuenca; por eso el reciclaje local es pequeño (≈ 5 % en 2 000 km²). La niebla solo la atrapa el "
-                         "bosque que quede dentro de la franja de la inversión (1.5.c).")
-    slide("p15-refo", "1 · Evapotranspiración", "1.5 · Extensión interactiva", "¿Y si reforestamos la cuenca del Chicama?", f"""
-<div class='two even'><div class='stack'>
-<div class='panel'>
-<div class='ctl'><label for='rf-f'>Bosque</label><input id='rf-f' type='range' min='0' max='100' step='1' value='{f0:.0f}'><output id='rf-fo'></output></div>
-<div class='ctl'><label for='rf-tipo'>Tipo</label><select id='rf-tipo'><option value='nat'>bosque nativo andino (montano y de queñua)</option>
-<option value='pl'>monocultivo de pino (Pinus patula o P. radiata)</option></select><span></span></div>
-<div class='ctl'><label for='rf-beta'>Efecto en T</label><input id='rf-beta' type='range' min='-1' max='1' step='0.1' value='0'><output id='rf-betao'></output></div>
-<div class='ctl'><label for='rf-rho'>Reciclaje</label><input id='rf-rho' type='range' min='0' max='0.2' step='0.01' value='0.05'><output id='rf-rhoo'></output></div>
-<div class='ctl'><label for='rf-fog'>Niebla</label><input id='rf-fog' type='range' min='0' max='1000' step='50' value='300'><output id='rf-fogo'></output></div>
-<p class='note'>Hoy la cuenca tiene {f(f0)} % de bosque (CAMELS-PE). «Reciclaje»: fracción de la ET extra que vuelve a llover en la cuenca. «Niebla»: agua que atrapa
-cada m² de bosque dentro de la franja de la inversión ({f(100*D['refo']['franja'], 1)} % de la cuenca, 1.5.c), en mm/año. «Efecto en T»: cambio neto de la
-temperatura del aire por cada 100 % de bosque, en °C; su signo es incierto (ver el balance de energía).</p>
-<div class='callout teal'><b>Los dos escenarios y su referencia.</b> <b>Bosque nativo:</b> los bosques que crecían en la cuenca antes de la deforestación:
-bosque montano siempreverde en las laderas húmedas y bosquetes de queñua (<i>Polylepis</i>) en la parte alta. Su ET se calibró con la curva de bosque de
-Zhang et al. (2001): w = 2,0 frente a 0,5 del pastizal. <b>Monocultivo de pino:</b> plantaciones de <i>Pinus patula</i> o <i>P. radiata</i>, como las de la
-sierra de Cajamarca. Las coníferas evaporan más que las latifoliadas: Bosch y Hewlett (1982) hallaron ≈ 40 mm menos de caudal por cada 10 % de coníferas,
-frente a ≈ 25 mm de latifoliadas; por eso su efecto es 40/25 = 1,6 veces el del bosque nativo.</div>
-<div class='readout' id='rf-out'></div></div>
-<div class='panel'><div id='g-refo' style='height:300px'></div></div></div>
-<div><div class='eq'>ET/P = 1 + φ − (1 + φ<sup>ω</sup>)<sup>1/ω</sup>, &nbsp; φ = ETo/P, &nbsp; ω = ω₀ + Δω·(f − f₀)</div>
-<p><b>Cómo funciona:</b> (1) la temperatura cambia según el control «Efecto en T»: el bosque enfría al evaporar (calor latente), pero calienta al
-absorber más sol (albedo ≈ 0,12 frente a ≈ 0,20); el panel de energía muestra cuál gana. (2) ETo cambia {f(100*sT, 1)} % por °C (sensibilidad de 1.1.d). (3) Más bosque significa raíces más profundas e interceptación: sube ω. Δω se calibró para que pasar de pastizal
-a bosque nativo aumente la ET {f(100*(Rz-1))} %, como en las curvas de Zhang et al. (2001) a esta aridez (φ = {f(phi0, 2)}), y 1,6 veces más para el monocultivo de pino
-(Bosch y Hewlett, 1982). (4) La lluvia sube por reciclaje y por niebla. (5) El caudal es Q = P − ET.</p>
-<p id='rf-txt'></p>
-<p><b>Calor latente frente a albedo:</b> evaporar 1 mm/año de agua consume 0,078 W/m². Pasar al 100 % de bosque nativo sube la ET ≈ 70 mm/año, es decir
-≈ +5 W/m² de calor latente (+8 con pino), pero el bosque más oscuro absorbe ≈ +16 W/m² más de sol. En una cuenca limitada por agua, la ET no
-puede crecer tanto: la mayor parte de la energía extra se va en <b>calor sensible</b>, que calienta la capa límite. La razón de Bowen baja (de 3,1 a ≈ 2,9), pero
-el calor sensible sube en valor absoluto. Por eso el bosque húmedo tropical enfría (Bonan, 2008), mientras un bosque en clima seco puede calentar el aire
-(Rotenberg y Yakir, 2010). Aquí el signo es incierto, entre ≈ −0,4 y +0,4 °C; el caudal casi no cambia con él (±2 mm).</p>
-<p><b>Lo que enseña:</b> reforestar <b>reduce el caudal</b>, se enfríe o se caliente el aire, y aunque atraiga algo de lluvia. Es el resultado clásico de las cuencas pareadas
-(Bosch y Hewlett, 1982), y en los Andes se ha visto con plantaciones de pino en páramo y jalca (Buytaert et al., 2007). Para que la lluvia extra compense, el reciclaje
-tendría que acercarse a 1, imposible en 2 000 km². Y la niebla solo cuenta en una franja muy pequeña. Lo que el modelo no incluye: los cambios en la infiltración y en
-el flujo de la estación seca, la erosión y la escala regional (deforestación amazónica).</p>
-<p class='note'>Modelo de equilibrio anual, de orden de magnitud; los supuestos (β, Δω, reciclaje, niebla) se pueden mover para ver cuánto pesan.</p></div></div>""")
-
-
 slide("p1-plan", "1 · Evapotranspiración", "Punto 1 · Hoja de ruta", "Del dato a la interpretación física",
       tabla([(a, d) for a, d, e in plan], ["Apartado", "Contenido"]) +
       "<p class='note'>La Tarea 1 dejó dos pistas que el punto 1 debe revisar: P/PET = 0,62 (subhúmedo seco) y un balance que no "
@@ -1075,10 +1021,46 @@ def limpio(o):
     return o
 
 
+if (P2D / "reforestacion_cottbus_parametros.csv").exists():
+    rc = pd.read_csv(P2D / "reforestacion_cottbus_parametros.csv", index_col=0).valor      # 10_reforestacion_cottbus.py
+    D["refoc"] = {k: float(rc[k]) for k in ["P_mm", "ETo_mm", "sT_por_C", "Rs_W_m2", "Rn_W_m2", "bosque_hoy", "albedo_pastizal",
+                                            "albedo_nativo", "albedo_pino", "C_hoy", "C_bosque", "Qp_hoy_m3_s"]}
+    FUENTES["p26-refo"] = ("Zhang et al. (2001) para la ET anual de bosque y pastizal (w = 2,0 y 0,5); Bosch y Hewlett (1982) para el factor 1,6 de las coníferas; "
+                           "Hofmann y Pommer (2005) para la vegetación natural potencial de Brandeburgo; Oke (1987) para los albedos; Bonan (2008) para el efecto "
+                           "del bosque en la temperatura según el clima; Chow et al. (1988), tabla 15.1.1, para C. Lluvia y ETo FAO-56 con los datos diarios de la "
+                           "estación DWD 00880. Script <code>codigo/punto2/10_reforestacion_cottbus.py</code>.")
+    ESTAB["p26-refo"] = ("El bosque es más oscuro y más rugoso que el prado: absorbe más sol y mezcla mejor el aire. Como evapora más, una parte mayor de la energía "
+                         "se va en calor latente (baja la razón de Bowen), pero el sol extra puede superar lo que se gasta en evaporar, sobre todo con pino, y el "
+                         "calor sensible sube. En verano eso calienta y profundiza la capa límite de día, justo cuando se forman las tormentas convectivas que "
+                         "dimensionan la alcantarilla; de noche, el dosel frena la inversión de radiación que deja niebla sobre los prados. En invierno, con nieve, "
+                         "el pino oscuro calienta (Bonan, 2008): en clima templado el signo neto es incierto.")
+    slide("p26-refo", "2 · Diseño hidrológico", "Punto 2 · Extensión interactiva", "¿Y si reforestamos la microcuenca de Cottbus?", f"""
+<div class='two even'><div class='stack'>
+<div class='panel'>
+<div class='ctl'><label for='rc-f'>Bosque</label><input id='rc-f' type='range' min='0' max='100' step='1' value='{100*rc.bosque_hoy:.0f}'><output id='rc-fo'></output></div>
+<div class='ctl'><label for='rc-tipo'>Tipo</label><select id='rc-tipo'><option value='pino'>monocultivo de pino silvestre (Pinus sylvestris)</option>
+<option value='nativo'>bosque nativo (roble, carpe y aliso)</option></select><span></span></div>
+<div class='ctl'><label for='rc-beta'>Efecto en T</label><input id='rc-beta' type='range' min='-1' max='1' step='0.1' value='0'><output id='rc-betao'></output></div>
+<div class='readout' id='rc-out'></div></div>
+<div class='panel'><div id='g-refoc' style='height:280px'></div></div></div>
+<div><div class='callout teal'><b>Los dos bosques y su referencia.</b> <b>Monocultivo de pino:</b> pino silvestre (<i>Pinus sylvestris</i>), el bosque
+plantado que domina en Brandeburgo. <b>Bosque nativo:</b> la vegetación natural potencial de la llanura húmeda del Spree: robledal de roble
+pedunculado con carpe (<i>Quercus robur</i>, <i>Carpinus betulus</i>) y alisedas de aliso negro (<i>Alnus glutinosa</i>) en los suelos más húmedos
+(Hofmann y Pommer, 2005). La ET de bosque y prado sale de las curvas de Zhang et al. (2001); el pino evapora 1,6 veces más que el bosque latifoliado
+porque es siempreverde, intercepta más lluvia en sus copas y transpira todo el año (Bosch y Hewlett, 1982).</div>
+<div class='eq'>ET/P = (1 + w φ) / (1 + w φ + 1/φ), &nbsp; φ = ETo/P = {f(rc.ETo_mm)}/{f(rc.P_mm)} = {f(rc.ETo_mm / rc.P_mm, 2)}</div>
+<p id='rc-txt'></p>
+<p><b>Lo que enseña:</b> Cottbus está en una de las regiones más secas de Alemania (564 mm de lluvia frente a 749 mm de demanda). Con más bosque,
+<b>casi no queda agua para recargar el acuífero ni para las zanjas</b>: con pino, dos tercios menos. Para la alcantarilla el efecto es pequeño: C baja de
+{f(rc.C_hoy, 2)} a {f(rc.C_bosque, 2)} (Chow, tabla 15.1.1) y el caudal de diseño baja 7 %, pero el tubo sigue siendo de 1,00 m. El bosque protege poco
+contra las crecientes de las tormentas fuertes, y sí cambia mucho el agua de todo el año.</p>
+<p class='note'>Modelo de equilibrio anual, de orden de magnitud. El bosque que ya existe (17 %) se toma como nativo; el control «Tipo» decide qué se planta.</p></div></div>""", k="k-arch", g="a")
+
+
 # orden: los bonos de 2.5 van al final, despues de los problemas de 2.4
 _b = [x for x in sl if "id='p25-bono'" in x]
 if _b:
-    sl.remove(_b[0]); sl.append(_b[0])
+    sl.remove(_b[0]); sl.insert(next((k for k, x in enumerate(sl) if "id='p26-refo'" in x), len(sl)), _b[0])
 
 nav = "".join(f"<button type='button' class='mod' data-go='{g}'><span>{n}</span> {t}</button>" for g, n, t in SEC[1:])
 css = (SITIO / "estilo_deck.css").read_text(encoding="utf-8") + (SITIO / "estilo_extra.css").read_text(encoding="utf-8")
