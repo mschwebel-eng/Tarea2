@@ -4,8 +4,8 @@ Marlin Julie Schwebel · Prof. Carlos David Hoyos
 
 - **Diapositivas con todos los resultados:** https://mschwebel-eng.github.io/Tarea2/ (`index.html`, `img/`, `assets/`).
 - **Código:** carpeta `codigo/`.
-  - `punto1/`: evapotranspiración en la cuenca del río Chicama hasta El Tambo (scripts `01_` a `17_`, en orden; módulos `fao56.py`, `lectura_era5land.py`, `metodos_etp.py`).
-  - `punto2/`: lluvia de 10 min de Cottbus (DWD 00880), extremos, IDF, microcuenca y problemas A y B (scripts `00_` a `08_`; módulo `distribuciones.py`).
+  - `punto1/`: evapotranspiración en la cuenca del río Chicama hasta El Tambo (scripts `01_` a `18_`, en orden; módulos `fao56.py`, `lectura_era5land.py`, `metodos_etp.py`).
+  - `punto2/`: lluvia de 10 min de Cottbus (DWD 00880), extremos, IDF, microcuenca y problemas A y B (scripts `00_` a `09_`; módulo `distribuciones.py`).
   - `sitio/`: genera la página de diapositivas (`construir.py`).
   - `presentacion/`: genera la presentación .pptx (`crear_pptx.py`).
 

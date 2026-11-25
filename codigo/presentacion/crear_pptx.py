@@ -1,9 +1,9 @@
 """
-crear_pptx.py - Presentacion de 10 minutos (11 diapositivas + 1 de reserva) en .pptx, para abrir y editar en Google Presentaciones.
+crear_pptx.py - Presentacion de 10 minutos (13 diapositivas + 1 de reserva) en .pptx, para abrir y editar en Google Presentaciones.
 
 Fuentes Arial (disponible en Google Presentaciones). Figuras de productos/punto1/figuras y productos/punto2/figuras; la grafica
 mensual (diapositiva 4) y la de reforestacion (reserva) son graficas nativas editables.
-Salida: productos/presentacion/T2_202602_GNN_presentacion.pptx
+Salida: productos/presentacion/T2_202602_Schwebel_presentacion.pptx
 """
 from pathlib import Path
 
@@ -123,6 +123,14 @@ notas(sl, "20 s. Dos preguntas: cuánta agua pide la atmósfera a la cuenca del 
           "obra de drenaje, con qué riesgo. El hilo de toda la presentación es la estabilidad de la atmósfera: la inversión decide cuándo y "
           "dónde llueve en el Chicama, y la inestabilidad produce las tormentas que dimensionan la obra en Cottbus.")
 
+# 1b ----------------------------------------------------------------- mapa de la cuenca del punto 1
+sl = prs.slides.add_slide(VACIA); titulo(sl, "Punto 1: la cuenca del río Chicama hasta El Tambo", "Vertiente del Pacífico de los Andes del norte de Perú, de 680 a 4 300 m")
+figura(sl, F1 / "fig_0_1_ubicacion_cuenca.png", 0.6, 1.55, W - 1.2, 5.45)
+pie(sl, "Cuenca de la Tarea 1; relieve Copernicus GLO-90; límites de Natural Earth · codigo/punto1/18_mapa_ubicacion.py")
+notas(sl, "20 s. La cuenca del Chicama hasta la estación El Tambo: 2 170 km² en la vertiente del Pacífico, entre La Libertad y Cajamarca. "
+          "Sube de unos 700 m en El Tambo a más de 4 000 m en la cordillera. Llueve sobre todo de diciembre a abril, y la costa vecina "
+          "está bajo la inversión térmica del Pacífico.")
+
 # 2 ------------------------------------------------------------------ demanda
 estandar("La atmósfera pide 1 211 mm al año, y la manda el sol",
          "ETo FAO-56 con ERA5-Land horario, 30 celdas, 1981–2025",
@@ -201,6 +209,14 @@ estandar("La demanda sube, pero desde 2000 llega menos sol",
          "40 s. La demanda sube 9 mm por década. Al separar los forzantes, la temperatura suma unos 8 mm por década, pero desde el año 2000 la "
          "radiación resta casi 10: llega menos sol, por aerosoles o nubes. Thornthwaite da 15 mm por década porque no ve la radiación. Es la "
          "misma lección de la diapositiva 2: usar solo la temperatura engaña.")
+
+# 6b ----------------------------------------------------------------- mapa de la microcuenca del punto 2
+sl = prs.slides.add_slide(VACIA); titulo(sl, "Punto 2: Cottbus y una microcuenca de 0,44 km²", "Cerca de El Tambo no hay lluvia subdiaria suficiente: el diseño se hace con la estación DWD 00880")
+figura(sl, F2 / "fig_0_2_ubicacion_microcuenca.png", 0.6, 1.55, W - 1.2, 5.45)
+pie(sl, "Terreno DGM1 de Brandeburgo (LGB, dl-de/by-2-0); límites de Natural Earth · codigo/punto2/09_mapa_ubicacion.py")
+notas(sl, "20 s. Para diseñar una obra hace falta lluvia cada pocos minutos durante muchos años, y cerca de El Tambo no la hay. Cottbus, "
+          "en el este de Alemania, tiene 30 años válidos de lluvia cada 10 minutos. La obra se diseña en una zanja de prados de 0,44 km² a "
+          "7 km del pluviómetro, en la misma llanura: la misma lluvia y ningún efecto del relieve.")
 
 # 7 ------------------------------------------------------------------ IDF
 estandar("Cottbus: una IDF que concuerda con la oficial",
@@ -302,6 +318,6 @@ notas(sl, "Solo si preguntan qué pasaría si cambia la cobertura. Más bosque s
           "calentarse en vez de enfriarse, como en bosques de zonas secas (Rotenberg y Yakir, 2010). En los trópicos húmedos, en cambio, el bosque "
           "enfría (Bonan, 2008). El caudal baja igual, porque depende de la ET y no de la temperatura.")
 
-ruta = OUT / "T2_202602_GNN_presentacion.pptx"
+ruta = OUT / "T2_202602_Schwebel_presentacion.pptx"
 prs.save(ruta)
 print(f"-> {ruta.relative_to(RAIZ)} ({len(prs.slides)} diapositivas)")

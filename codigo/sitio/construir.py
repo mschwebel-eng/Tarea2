@@ -113,8 +113,7 @@ anios_val = comp[comp.valido].anio
 caj_buenos = int((caj.p6h >= 0.8 * 1460).sum())
 
 # ============================================================================= diapositivas
-SEC = [("portada", "", "Inicio"), ("p1-cuenca", "1", "Evapotranspiración"), ("p2-sitio", "2", "Diseño hidrológico"),
-       ("estado", "3", "Estado")]
+SEC = [("portada", "", "Inicio"), ("p1-cuenca", "1", "Evapotranspiración"), ("p2-sitio", "2", "Diseño hidrológico")]
 
 sl.append(f"""<section class='slide portada' id='portada' data-g='' data-sec='Tarea 2 · Hidrología'>
 <p class='kicker'>Tarea 2 · Hidrología 2026-2 · UNAL Medellín</p>
@@ -127,10 +126,11 @@ alcantarilla y un tanque de detención con la lluvia de 10 minutos de Cottbus (A
 qué la limita cada mes y qué tan seguros estamos.</p></button>
 <button class='card lift pick' type='button' data-go='p2-sitio'><h4>2 · Diseño hidrológico</h4><p>Por qué Cottbus, y la serie
 de 10 minutos que sostiene la IDF.</p></button>
-<button class='card lift pick' type='button' data-go='estado'><h4>3 · Estado del trabajo</h4><p>Qué está hecho, qué está en
-curso y qué falta decidir.</p></button>
+<button class='card lift pick' type='button' data-go='p15-refo'><h4>¿Y si reforestamos?</h4><p>Diapositiva interactiva:
+bosque, temperatura, ET, lluvia y caudal del Chicama.</p></button>
 </div>
-<p class='note' style='margin-top:16px'>Este sitio solo muestra resultados ya calculados y verificados; lo que falta aparece como pendiente.</p>
+<p class='note' style='margin-top:16px'>Todos los resultados salen del código publicado en
+<a href='https://github.com/mschwebel-eng/Tarea2'>github.com/mschwebel-eng/Tarea2</a>.</p>
 </section>""")
 
 slide("p1-cuenca", "1 · Evapotranspiración", "Punto 1 · Datos",
@@ -159,8 +159,8 @@ slide("p1-datos", "1 · Evapotranspiración", "Punto 1 · 1.1.a",
 <p class='note'>Series horarias por punto (<code>reanalysis-era5-land-timeseries</code>), 1981–2025: las medias diarias de
 componentes del viento subestiman la velocidad porque los vectores de distintas horas se cancelan.</p>
 </div><div class='stack'>
-<div class='callout {"green" if est_desc == "hecho" else "blue"}'><b>Descarga {tag(est_desc)}</b><br>
-Series horarias: {n_horario} de {len(pesos)} celdas. Medias mensuales por área: {"descargadas" if hay_mensual else "en cola"}.</div>
+<div class='callout green'><b>Datos descargados</b><br>
+Series horarias de las {len(pesos)} celdas que tocan la cuenca y medias mensuales por área.</div>
 <div class='card'><h4>Medias mensuales (<code>monthly-means</code>)</h4><p>Para la ETo calculada con medias mensuales (error por
 promediar antes de una ecuación no lineal), la radiación neta real (1.2.3), la evaporación total (1.2.4) y la humedad del suelo
 (1.3.2). Ojo: variables acumuladas en m d⁻¹ y evaporación negativa por convención.</p></div>
@@ -757,17 +757,17 @@ el flujo de la estación seca, la erosión y la escala regional (deforestación 
 
 
 slide("p1-plan", "1 · Evapotranspiración", "Punto 1 · Hoja de ruta", "Del dato a la interpretación física",
-      tabla([(a, d, tag(e)) for a, d, e in plan], ["Apartado", "Contenido", "Estado"]) +
+      tabla([(a, d) for a, d, e in plan], ["Apartado", "Contenido"]) +
       "<p class='note'>La Tarea 1 dejó dos pistas que el punto 1 debe revisar: P/PET = 0,62 (subhúmedo seco) y un balance que no "
       "cierra (R/P observado 0,48 frente a 0,16 de Budyko).</p>")
 
 filas_sitio = [
     ("Cajamarca aeropuerto (SPJR)", "≈ 50 km NE, 2 676 m", "6 h (nunca horaria)",
-     f"{caj_buenos} años con ≥ 80 % de reportes de 6 h", tag("blk")),
-    ("San Marcos (84479)", "≈ 60 km E", "1 h", "solo 2026", tag("blk")),
-    ("Estaciones automáticas SENAMHI en la cuenca", "dentro", "1 h", "desde ~2014 (≤ 12 años, a pedido)", tag("blk")),
+     f"{caj_buenos} años con ≥ 80 % de reportes de 6 h", "no"),
+    ("San Marcos (84479)", "≈ 60 km E", "1 h", "solo 2026", "no"),
+    ("Estaciones automáticas SENAMHI en la cuenca", "dentro", "1 h", "desde ~2014 (≤ 12 años, a pedido)", "no"),
     ("<b>Cottbus, DWD 00880</b>", "Alemania", "<b>10 min</b>", f"<b>{n_validos} años válidos</b> ({anios_val.min()}–{anios_val.max()})",
-     tag("hecho")),
+     "<b>sí</b>"),
 ]
 slide("p2-sitio", "2 · Diseño hidrológico", "Punto 2 · 2.1", "¿Por qué el punto 2 se hace en Cottbus?", f"""
 <p class='lead'>La guía ordena los criterios: primero la longitud del registro, luego la resolución, luego la calidad, y la
@@ -1060,51 +1060,6 @@ la lluvia que sigue al pico todavía supera la salida.</p></div>
 casi no importa más allá de 3 h, porque la cola de lluvia débil sale por el orificio sin acumularse. Con la duración crítica de 1 h, las 6 h escogidas (≈ 9 tc) son de sobra.</p></div></div></div>""", k="k-arch", g="a")
 
 
-DEC1 = [
-    ("Demanda de referencia en 1.2–1.4", "ERA5-Land FAO-56, con banda de −10 a −25 %", "Es la única con todas las variables de FAO-56 por hora; la estación de Cajamarca y los productos dan el tamaño del sesgo (1.1.b), que se propaga como incertidumbre."),
-    ("Umbrales de régimen ET/ETo", "0,75 (energía) y 0,40 (agua)", "Separan bien los meses en la gráfica de fracción evaporativa frente a humedad del suelo (1.3) y quedan cerca del umbral del ajuste segmentado; falta probar cuánto cambia la clasificación con ±0,05."),
-    ("ω de Budyko–Fu", "rango 1,6–1,8 (central 1,57 del balance)", "Un único valor ocultaría que ET real tiene ±158 mm de incertidumbre; el rango expresa esa incertidumbre."),
-    ("Apartado opcional 1.6", "Hacerlo: 1.6.1, déficit climático Σ(ETo − P) de mayo a septiembre", "Vale +0,2, usa datos ya calculados y conecta con el punto 2 (frecuencia con GEV-LMOM). Riesgo: la guía lo ata a usar la misma cuenca en el punto 2; se declara y se analiza la serie del Chicama."),
-    ("Verificación de fuentes", "Leer McMillan et al. (2012) y confirmar en FLUXNET que no hay torres en la región", "La política exige haber leído las fuentes citadas: si no se confirma, se quita la cita."),
-]
-DEC2 = [
-    ("Días imposibles (1991–1994)", "Eliminarlos (22 días)", "10 min con más lluvia que el pluviómetro diario es físicamente imposible; dejarlos inflaría los máximos de la época del contador de gotas."),
-    ("Año válido", "≥ 80 % del año y ≥ 90 % de mayo–septiembre (30 años)", "Protege la temporada de tormentas; la sensibilidad (29 o 32 años) cambia los cuantiles menos de 3 %."),
-    ("2014-08-03 y firmware 2021", "Conservarlos, con sensibilidad", "No hay prueba de error en 10 min; quitarlos cambia &lt; 3 % los cuantiles cortos que usa el diseño."),
-    ("Distribución", "GEV por L-momentos", "Límite teórico de los máximos de bloque, mejor ajuste promedio y estimación estable con 30 datos."),
-    ("Microcuenca", "Zanja de 0,44 km² en el DGM1, a 7,2 km", "Cumple el rango de la guía, mismo régimen climático y cuenca real delimitada con lidar."),
-    ("Valores de C", "Chow, tabla 15.1.1 (zonas planas), según T", "Es la tabla que pide la guía; hay que comprobar cada valor en el libro antes de entregar."),
-    ("Fórmula de tc de diseño", "Kirpich (102 min)", "Es la de la guía para cuencas pequeñas con cauce definido; queda en el medio de las cuatro; la incertidumbre se reporta (29 % del diámetro)."),
-    ("Periodo de retorno", "T = 25 años (n = 30, R = 70 %)", "Consecuencias bajas (camino rural, prados) y coincide con la práctica de Chow para vías secundarias."),
-    ("Tubo", "S₀ = 0,5 %, concreto n = 0,013; CN = 55 para el SCS", "Valores típicos de alcantarilla y de pastizal en suelos arenosos del Spree; entran en el Monte Carlo como rangos."),
-    ("Urbanización (problema B)", "50 % impermeable, tc = Kirpich × 0,4", "Densidad residencial media; el ajuste × 0,4 de Chow para asfalto coincide con el cálculo por cunetas a 1 m/s (41 min)."),
-    ("Tanque", "h<sub>máx</sub> = 1,5 m, C<sub>d</sub> = 0,6, diseño con pico al centro (≈ 7 900 m³)", "Nivel freático somero en la llanura del Spree; la profundidad no cambia el volumen. El pico al centro es el más exigente de los tres."),
-    ("Bonos de 2.5", "Hacer 2.5.3 (escalado de 7 % por °C) además de 2.5.1", "Barato con lo ya hecho, responde la pregunta de clima de la síntesis y cambia el diámetro y el riesgo efectivo de la obra."),
-    ("Tormenta de 2018", "Buscar noticias o informes del DWD", "Confirmaría que el máximo es real y no un error del instrumento."),
-]
-FUENTES["decisiones"] = "guía, sección «Uso de IA y responsabilidad del grupo» (Nivel A): quien entrega justifica las decisiones metodológicas y debe poder explicarlas."
-slide("decisiones", "3 · Estado", "Decisiones del grupo", "Propuesta para cada decisión abierta (para revisar y aprobar)", f"""
-<div class='two even'><div><h3>Punto 1</h3>{tabla(DEC1, ["Decisión", "Propuesta", "Por qué"])}
-<div class='callout teal'><b>Trabajo individual</b> de Marlin Julie Schwebel. Pendiente: número del grupo para el nombre del ZIP
-(T2_202602_GNN_Schwebel.zip).</div>
-<p class='note'>Son recomendaciones: según la política de IA, cada decisión la aprueba la autora, que debe poder explicarla en la presentación. Las que se cambien se
-recalculan con los scripts.</p></div>
-<div><h3>Punto 2</h3>{tabla(DEC2, ["Decisión", "Propuesta", "Por qué"])}</div></div>""")
-
-
-slide("estado", "3 · Estado", "Estado del trabajo", "Qué está hecho y qué sigue", f"""
-<div class='two even'><div class='stack'>
-<div class='card'><h4>Hecho {tag("hecho")}</h4><p><b>Punto 1 completo de 1.1 a 1.5</b> (ETo FAO-56 verificada, nueve métodos, sensibilidad, ET real por balance,
-régimen y Budyko, tendencias, gradiente altitudinal y niebla). <b>Punto 2:</b> control de calidad, ajuste de extremos, IDF frente a KOSTRA, microcuenca,
-problema A con Monte Carlo y escala, problema B (tanque de detención), bono 2.5.1.</p></div>
-<div class='card'><h4>Decisiones de la autora {tag("dec")}</h4><p>Umbrales de régimen 0,75/0,40; ω como rango 1,6–1,8; GEV por L-momentos; regla de días imposibles;
-valores de C (verificar en la tabla 15.1.1 de Chow); T = 25 por riesgo (n = 30, R = 70 %); S₀ = 0,5 % y n = 0,013; CN = 55; costos del bono.</p></div>
-</div><div class='panel'><h3>Lo que sigue</h3><ul class='pts'>
-<li>Síntesis del punto 2 (lluvia de diseño, incertidumbre, riesgo real, efecto del clima y de la cobertura).</li>
-<li>Síntesis del punto 1 y esquema conceptual actualizado; 1.6.1 (déficit climático) y bono 2.5.3 (+7 % por °C).</li>
-<li>Informe PDF, presentación PDF, README y ZIP con la estructura de la guía (sin credenciales ni bases completas).</li>
-</ul></div></div>""")
-
 # ============================================================================= pagina
 def limpio(o):
     if isinstance(o, dict):
@@ -1120,10 +1075,10 @@ def limpio(o):
     return o
 
 
-# orden: los bonos de 2.5 van despues de los problemas de 2.4
+# orden: los bonos de 2.5 van al final, despues de los problemas de 2.4
 _b = [x for x in sl if "id='p25-bono'" in x]
 if _b:
-    sl.remove(_b[0]); sl.insert(next(k for k, x in enumerate(sl) if "id='estado'" in x), _b[0])
+    sl.remove(_b[0]); sl.append(_b[0])
 
 nav = "".join(f"<button type='button' class='mod' data-go='{g}'><span>{n}</span> {t}</button>" for g, n, t in SEC[1:])
 css = (SITIO / "estilo_deck.css").read_text(encoding="utf-8") + (SITIO / "estilo_extra.css").read_text(encoding="utf-8")
